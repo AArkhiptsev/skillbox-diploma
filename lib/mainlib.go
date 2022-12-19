@@ -1,6 +1,17 @@
 package lib
 
-import "strings"
+import (
+	"log"
+	"sort"
+	"strings"
+)
+
+const (
+	ColorReset     = "\033[0m"
+	ColorRed       = "\033[31m"
+	ColorCyan      = "\033[36m"
+	convertErrText = "Ошибка конвертации. Параметр:"
+)
 
 var countryMap = map[string]string{
 	"AF": "Afghanistan",
@@ -256,4 +267,19 @@ var countryMap = map[string]string{
 
 func GetCountryNameByAlpha(alpha string) (result string) {
 	return (countryMap[strings.ToUpper(alpha)])
+}
+
+func found(s string, a []string) bool {
+	return a[sort.SearchStrings(a, s)] == s
+}
+
+func LogStorageSMSData() {
+	for _, datum := range storageSMSData {
+		log.Println(datum)
+	}
+}
+
+func logParseErr(errText, param string) {
+	log.Printf(convertErrText+ColorRed+errText+ColorReset, param)
+
 }

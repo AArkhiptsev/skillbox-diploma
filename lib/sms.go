@@ -4,16 +4,14 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 )
 
 const (
-	smsSeparator   = ";"
-	convertErrText = "Ошибка конвертации. Параметр:"
-	ColorReset     = "\033[0m"
-	ColorRed       = "\033[31m"
+	smsSeparator  = ";"
+	mmsDataServer = "localhost:8383"
+	x
 )
 
 var SmsProviders = []string{"Topolo", "Rond", "Kildy"} //отсортируем
@@ -25,22 +23,14 @@ type smsData struct {
 	provider     string
 }
 
+type mmsData struct {
+	Country      string `json:"country"`
+	Provider     string `json:"provider"`
+	Bandwidth    string `json:"bandwidth"`
+	ResponseTime string `json:"response_time"`
+}
+
 var storageSMSData = make([]smsData, 0)
-
-func found(s string, a []string) bool {
-	return a[sort.SearchStrings(a, s)] == s
-}
-
-func LogStorageSMSData() {
-	for _, datum := range storageSMSData {
-		log.Println(datum)
-	}
-}
-
-func logParseErr(errText, param string) {
-	log.Printf(convertErrText+ColorRed+errText+ColorReset, param)
-
-}
 
 func (s smsData) Check() (result bool) {
 
@@ -76,7 +66,7 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 	lineCounter := 1
 
-	log.Printf("Открытие файла %s", filename)
+	log.Printf(ColorCyan+"Открытие файла %s"+ColorReset, filename)
 
 	file, err := os.Open(filename)
 	if err != nil {
