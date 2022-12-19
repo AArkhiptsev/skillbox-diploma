@@ -10,21 +10,30 @@ import (
 )
 
 const smsSeparator = ";"
+const convertErrText = "Ошибка конвертации. Параметр:"
 
 var SmsProviders = []string{"Topolo", "Rond", "Kildy"} //отсортируем
 
-type SMSData struct {
+type smsData struct {
 	country      string
 	bandwith     string
 	responseTime string
 	provider     string
 }
 
+var storageSMSData = make([]smsData, 0)
+
 func found(s string, a []string) bool {
 	return a[sort.SearchStrings(a, s)] == s
 }
 
-func (s SMSData) Check() (result bool) {
+func LogStorageSMSData() {
+	for _, datum := range storageSMSData {
+		log.Println(datum)
+	}
+}
+
+func (s smsData) Check() (result bool) {
 
 	result = false
 
@@ -33,17 +42,17 @@ func (s SMSData) Check() (result bool) {
 	}
 
 	if !(found(s.provider, SmsProviders)) {
-		log.Printf("Нераспознанный провайдер: %v\n", s.provider)
+		log.Printf(convertErrText+" провайдер: %v\n", s.provider)
 		return
 	}
 
 	if _, err := strconv.Atoi(s.responseTime); err != nil {
-		log.Printf("Ошибка конвертации. Параметр: среднее время ответа: %v\n", s.responseTime)
+		log.Printf(convertErrText+" среднее время ответа: %v\n", s.responseTime)
 		return
 	}
 
 	if _, err := strconv.Atoi(s.bandwith); err != nil {
-		log.Printf("Ошибка конвертации. Параметр: полоса пропускания: %v\n", s.bandwith)
+		log.Printf(convertErrText+" полоса пропускания: %v\n", s.bandwith)
 		return
 	}
 
@@ -53,7 +62,7 @@ func (s SMSData) Check() (result bool) {
 
 }
 
-func FetchSMS(filename string) {
+func FetchSMS(filename string) (parseErrCount int) {
 
 	lineCounter := 1
 
@@ -72,21 +81,26 @@ func FetchSMS(filename string) {
 	for scanner.Scan() {
 
 		splittedString := strings.Split(scanner.Text(), smsSeparator)
-		log.Println("Парсинг:", splittedString)
+		//log.Println("Парсинг:", splittedString)
 
 		if len(splittedString) > 3 {
 
-			s := SMSData{
+			s := smsData{
 				country:      splittedString[0],
 				bandwith:     splittedString[1],
 				responseTime: splittedString[2],
 				provider:     splittedString[3],
 			}
 
-			s.Check()
+			if s.Check() {
+				storageSMSData = append(storageSMSData, s)
+			} else {
+				parseErrCount++
+			}
 
 		} else {
-			log.Printf("Ошибка в строке: %d", lineCounter)
+			log.Printf("Ошибка количества элементов. Строка: %d", lineCounter)
+			parseErrCount++
 		}
 
 		lineCounter++
@@ -95,4 +109,7 @@ func FetchSMS(filename string) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+
+	return
+
 }
