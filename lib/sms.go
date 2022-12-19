@@ -9,8 +9,12 @@ import (
 	"strings"
 )
 
-const smsSeparator = ";"
-const convertErrText = "Ошибка конвертации. Параметр:"
+const (
+	smsSeparator   = ";"
+	convertErrText = "Ошибка конвертации. Параметр:"
+	ColorReset     = "\033[0m"
+	ColorRed       = "\033[31m"
+)
 
 var SmsProviders = []string{"Topolo", "Rond", "Kildy"} //отсортируем
 
@@ -33,26 +37,32 @@ func LogStorageSMSData() {
 	}
 }
 
+func logParseErr(errText, param string) {
+	log.Printf(convertErrText+ColorRed+errText+ColorReset, param)
+
+}
+
 func (s smsData) Check() (result bool) {
 
 	result = false
 
 	if GetCountryNameByAlpha(s.country) == "" {
+		logParseErr(" alpha: %v", s.country)
 		return
 	}
 
 	if !(found(s.provider, SmsProviders)) {
-		log.Printf(convertErrText+" провайдер: %v\n", s.provider)
+		logParseErr(" провайдер: %v", s.provider)
 		return
 	}
 
 	if _, err := strconv.Atoi(s.responseTime); err != nil {
-		log.Printf(convertErrText+" среднее время ответа: %v\n", s.responseTime)
+		logParseErr(" среднее время ответа: %v", s.responseTime)
 		return
 	}
 
 	if _, err := strconv.Atoi(s.bandwith); err != nil {
-		log.Printf(convertErrText+" полоса пропускания: %v\n", s.bandwith)
+		logParseErr(" полоса пропускания: %v", s.bandwith)
 		return
 	}
 
@@ -99,7 +109,8 @@ func FetchSMS(filename string) (parseErrCount int) {
 			}
 
 		} else {
-			log.Printf("Ошибка количества элементов. Строка: %d", lineCounter)
+			log.Printf("Ошибка количества элементов. Строка: "+
+				ColorRed+"%v"+ColorReset, lineCounter)
 			parseErrCount++
 		}
 

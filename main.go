@@ -15,8 +15,10 @@ func init() {
 func main() {
 
 	log.Println("Старт...")
+
 	log.Println("Подготовленный массив провайдеров:", sms.SmsProviders)
-	log.Printf("Разобран файл %v, ошибок разбора %v", smsFileName, sms.FetchSMS(smsFileName))
+	log.Printf("Разобран файл %v,"+sms.ColorRed+" ошибок разбора %v"+sms.ColorReset,
+		smsFileName, sms.FetchSMS(smsFileName))
 	log.Println("Результат:")
 	sms.LogStorageSMSData()
 	log.Println("=====")
