@@ -19,9 +19,11 @@ const (
 	x
 )
 
-var SmsProviders = []string{"Topolo", "Rond", "Kildy"}
-var mmsProviders = SmsProviders //работаем с копией, сделано на случай,
-// если в будущем появится иной набор провайдеров для MMS
+var (
+	SmsProviders = []string{"Topolo", "Rond", "Kildy"}
+	mmsProviders = SmsProviders //работаем с копией, сделано на случай,
+	// если в будущем появится иной набор провайдеров для MMS
+)
 
 type smsData struct {
 	country      string
@@ -73,11 +75,41 @@ func (s smsData) Check() (result bool) {
 }
 
 func (m mmsData) Check() (result bool) {
+
+	result = false
+
+	if lib.GetCountryNameByAlpha(m.Country) == "" {
+		lib.LogParseErr(3, " alpha: "+m.Country)
+		return
+	}
+
+	if !(lib.Found(m.Provider, mmsProviders)) {
+		lib.LogParseErr(3, " провайдер: "+m.Provider)
+		return
+	}
+	if _, err := strconv.Atoi(m.ResponseTime); err != nil {
+		lib.LogParseErr(3, " среднее время ответа: "+m.ResponseTime)
+		return
+	}
+
+	if _, err := strconv.Atoi(m.Bandwidth); err != nil {
+		lib.LogParseErr(3, " полоса пропускания: "+m.Bandwidth)
+		return
+	}
+
+	result = true
+
 	return
 }
 
 func LogStorageSMSData() {
 	for _, datum := range storageSMSData {
+		log.Println(datum)
+	}
+}
+
+func LogStorageMMSData() {
+	for _, datum := range storageMMSData {
 		log.Println(datum)
 	}
 }
@@ -135,6 +167,10 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 }
 
+func removeIndex(s []mmsData, index int) []mmsData {
+	return append(s[:index], s[index+1:]...)
+}
+
 func FetchMMS(URL string) {
 
 	resp, err := http.Get(URL)
@@ -174,7 +210,21 @@ func FetchMMS(URL string) {
 
 	lib.LogParseErr(1, "Проверка на корректность значений...")
 
-	for i, _ := range storageMMSData {
-		mmsData.Check(storageMMSData[i])
+	k := len(storageMMSData)
+	errCount := 0
+
+	for i := 0; i < k; i++ {
+
+		if !(mmsData.Check(storageMMSData[i])) {
+			//fmt.Println("DELETE...", i)
+			storageMMSData = removeIndex(storageMMSData, 2)
+			k--
+			errCount++
+		}
+
 	}
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Проверка корректности произведена. Записей %v", len(storageMMSData)))
+
 }

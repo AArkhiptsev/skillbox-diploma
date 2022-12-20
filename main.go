@@ -38,6 +38,11 @@ func mmsHandler() {
 	lib.LogParseErr(1, "Запросим данные по MMS "+mmsDataServer)
 	fetch.FetchMMS(mmsDataServer)
 
+	lib.LogParseErr(0, "Результат:")
+	fetch.LogStorageMMSData()
+
+	lib.LogParseErr(1, "Обработка MMS завершена")
+
 }
 
 func main() {
