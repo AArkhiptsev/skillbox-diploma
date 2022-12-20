@@ -3,19 +3,25 @@ package fetch
 import (
 	"bufio"
 	"diploma/lib"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 )
 
 const (
-	smsSeparator  = ";"
-	mmsDataServer = "localhost:8383"
+	smsSeparator = ";"
+
 	x
 )
 
-var SmsProviders = []string{"Topolo", "Rond", "Kildy"} //отсортируем
+var SmsProviders = []string{"Topolo", "Rond", "Kildy"}
+var mmsProviders = SmsProviders //работаем с копией, сделано на случай,
+// если в будущем появится иной набор провайдеров для MMS
 
 type smsData struct {
 	country      string
@@ -31,7 +37,10 @@ type mmsData struct {
 	ResponseTime string `json:"response_time"`
 }
 
-var storageSMSData = make([]smsData, 0)
+var (
+	storageSMSData = []smsData{}
+	storageMMSData = []mmsData{}
+)
 
 func (s smsData) Check() (result bool) {
 
@@ -63,6 +72,10 @@ func (s smsData) Check() (result bool) {
 
 }
 
+func (m mmsData) Check() (result bool) {
+	return
+}
+
 func LogStorageSMSData() {
 	for _, datum := range storageSMSData {
 		log.Println(datum)
@@ -77,7 +90,7 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 	file, err := os.Open(filename)
 	if err != nil {
-		lib.LogParseErr(3, err.Error())
+		lib.LogParseErr(4, err.Error())
 		return
 	}
 
@@ -106,7 +119,7 @@ func FetchSMS(filename string) (parseErrCount int) {
 			}
 
 		} else {
-			lib.LogParseErr(3, "Ошибка количества элементов. Строка: "+
+			lib.LogParseErr(4, "Ошибка количества элементов. Строка: "+
 				strconv.Itoa(lineCounter))
 			parseErrCount++
 		}
@@ -120,4 +133,48 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 	return
 
+}
+
+func FetchMMS(URL string) {
+
+	resp, err := http.Get(URL)
+
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		lib.LogParseErr(4,
+			fmt.Sprintf("Код ответа сервера: %v", resp.StatusCode))
+		return
+	}
+
+	lib.LogParseErr(0,
+		fmt.Sprintf("Код ответа сервера: %v", resp.StatusCode))
+
+	lib.LogParseErr(1, "Произведем JSON разбор...")
+	content, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		lib.LogParseErr(0,
+			fmt.Sprintf("Ошибка чтения Body: %v", err.Error()))
+		return
+	}
+
+	if err := json.Unmarshal(content, &storageMMSData); err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Разбор JSON произведен. Записей %v", len(storageMMSData)))
+
+	lib.LogParseErr(1, "Проверка на корректность значений...")
+
+	for i, _ := range storageMMSData {
+		mmsData.Check(storageMMSData[i])
+	}
 }

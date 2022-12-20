@@ -7,18 +7,19 @@ import (
 	"sort"
 )
 
-const smsFileName = "../emul/sms.data"
+const (
+	smsFileName   = "../emul/sms.data"
+	mmsDataServer = "http://127.0.0.1:8383/mms"
+)
 
 func init() {
 	sort.Strings(fetch.SmsProviders) //отсортируем провайдеров, чтобы ускорить поиск по ним
 }
 
-func main() {
-
-	lib.LogParseErr(0, "Старт...")
-
+func smsHandler() {
 	lib.LogParseErr(1,
-		fmt.Sprint("Подготовленный массив провайдеров: %s", fetch.SmsProviders))
+		fmt.Sprintf("Подготовленный массив SMS-провайдеров: %v",
+			fetch.SmsProviders))
 
 	lib.LogParseErr(2,
 		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", smsFileName,
@@ -29,5 +30,21 @@ func main() {
 
 	lib.LogParseErr(1,
 		fmt.Sprintf("Обработка %v завершена", smsFileName))
+
+}
+
+func mmsHandler() {
+
+	lib.LogParseErr(1, "Запросим данные по MMS "+mmsDataServer)
+	fetch.FetchMMS(mmsDataServer)
+
+}
+
+func main() {
+
+	lib.LogParseErr(0, "Старт...")
+
+	smsHandler()
+	mmsHandler()
 
 }

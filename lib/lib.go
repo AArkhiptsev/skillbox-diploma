@@ -294,10 +294,14 @@ func LogParseErr(errLevel uint8, errText string) {
 		{ //warning
 			result = fmt.Sprintf(ColorYellow + "[WARN]: " + ColorReset + errText)
 		}
-	case errLevel == 3:
+	case errLevel == 3: //Ошибка обработки (конвертации)
 		{ //error
 			result = fmt.Sprintf(ColorRed + "[ ERR]: " + ColorReset +
 				convertErrText + errText)
+		}
+	case errLevel == 4: //Ошибка
+		{ //error
+			result = fmt.Sprintf(ColorRed + "[ ERR]: " + ColorReset + errText)
 		}
 	default:
 		{
