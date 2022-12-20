@@ -8,19 +8,21 @@ import (
 )
 
 const (
-	smsFileName   = "../emul/sms.data"
-	mmsDataServer = "http://127.0.0.1:8383/mms"
+	smsFileName       = "../emul/sms.data"
+	voiceCallFileName = "../emul/voice.data"
+	mmsDataServer     = "http://127.0.0.1:8383/mms"
 )
 
 func init() {
 	sort.Strings(fetch.SmsProviders) //отсортируем провайдеров, чтобы ускорить поиск по ним
+	sort.Strings(fetch.MmsProviders)
+	sort.Strings(fetch.VoiceCallProviders)
+
 }
 
 func smsHandler() {
-	lib.LogParseErr(1,
-		fmt.Sprintf("Подготовленный массив SMS-провайдеров: %v",
-			fetch.SmsProviders))
 
+	lib.LogParseErr(1, "Начат разбр файла SMS")
 	lib.LogParseErr(2,
 		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", smsFileName,
 			fetch.FetchSMS(smsFileName)))
@@ -35,7 +37,7 @@ func smsHandler() {
 
 func mmsHandler() {
 
-	lib.LogParseErr(1, "Запросим данные по MMS "+mmsDataServer)
+	lib.LogParseErr(1, "Запросим данные об MMS "+mmsDataServer)
 	fetch.FetchMMS(mmsDataServer)
 
 	lib.LogParseErr(0, "Результат:")
@@ -45,11 +47,27 @@ func mmsHandler() {
 
 }
 
+func voiceCallHandler() {
+
+	lib.LogParseErr(1, "Начат разбр файла Voice Calls")
+	lib.LogParseErr(2,
+		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", voiceCallFileName,
+			fetch.FetchVoicesCall(voiceCallFileName)))
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Обработка %v завершена", voiceCallFileName))
+}
+
 func main() {
 
 	lib.LogParseErr(0, "Старт...")
 
+	lib.LogParseErr(0, "Подготовленный массив провайдеров:")
+	lib.LogParseErr(0, fmt.Sprintf("SMS: %v\n", fetch.SmsProviders))
+	lib.LogParseErr(0, fmt.Sprintf("Voice Calls: %v\n", fetch.VoiceCallProviders))
+
 	smsHandler()
 	mmsHandler()
+	voiceCallHandler()
 
 }

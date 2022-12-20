@@ -244,7 +244,7 @@ var countryMap = map[string]string{
 	"TO": "Tonga",
 	"TT": "Trinidad and Tobago",
 	"TN": "Tunisia",
-	"T!": "Turkey",
+	"TR": "Turkey",
 	"TM": "Turkmenistan",
 	"TC": "Turks and Caicos Islands",
 	"TV": "Tuvalu",
