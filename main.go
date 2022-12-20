@@ -1,26 +1,33 @@
 package main
 
 import (
-	sms "diploma/lib"
-	"log"
+	"diploma/fetch"
+	"diploma/lib"
+	"fmt"
 	"sort"
 )
 
 const smsFileName = "../emul/sms.data"
 
 func init() {
-	sort.Strings(sms.SmsProviders) //отсортируем провайдеров, чтобы ускорить поиск по ним
+	sort.Strings(fetch.SmsProviders) //отсортируем провайдеров, чтобы ускорить поиск по ним
 }
 
 func main() {
 
-	log.Println("Старт...")
+	lib.LogParseErr(0, "Старт...")
 
-	log.Println("Подготовленный массив провайдеров:", sms.SmsProviders)
-	log.Printf("Разобран файл %v,"+sms.ColorRed+" ошибок разбора %v"+
-		sms.ColorReset, smsFileName, sms.FetchSMS(smsFileName))
-	log.Println("Результат:")
-	sms.LogStorageSMSData()
-	log.Printf(sms.ColorCyan+"Обработка %v завершена"+sms.ColorReset, smsFileName)
+	lib.LogParseErr(1,
+		fmt.Sprint("Подготовленный массив провайдеров: %s", fetch.SmsProviders))
+
+	lib.LogParseErr(2,
+		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", smsFileName,
+			fetch.FetchSMS(smsFileName)))
+
+	lib.LogParseErr(0, "Результат:")
+	fetch.LogStorageSMSData()
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Обработка %v завершена", smsFileName))
 
 }

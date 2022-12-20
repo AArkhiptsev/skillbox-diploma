@@ -1,7 +1,8 @@
-package lib
+package fetch
 
 import (
 	"bufio"
+	"diploma/lib"
 	"log"
 	"os"
 	"strconv"
@@ -36,23 +37,23 @@ func (s smsData) Check() (result bool) {
 
 	result = false
 
-	if GetCountryNameByAlpha(s.country) == "" {
-		logParseErr(" alpha: %v", s.country)
+	if lib.GetCountryNameByAlpha(s.country) == "" {
+		lib.LogParseErr(3, " alpha: "+s.country)
 		return
 	}
 
-	if !(found(s.provider, SmsProviders)) {
-		logParseErr(" провайдер: %v", s.provider)
+	if !(lib.Found(s.provider, SmsProviders)) {
+		lib.LogParseErr(3, " провайдер: "+s.provider)
 		return
 	}
 
 	if _, err := strconv.Atoi(s.responseTime); err != nil {
-		logParseErr(" среднее время ответа: %v", s.responseTime)
+		lib.LogParseErr(3, " среднее время ответа: "+s.responseTime)
 		return
 	}
 
 	if _, err := strconv.Atoi(s.bandwith); err != nil {
-		logParseErr(" полоса пропускания: %v", s.bandwith)
+		lib.LogParseErr(3, " полоса пропускания: "+s.bandwith)
 		return
 	}
 
@@ -62,15 +63,21 @@ func (s smsData) Check() (result bool) {
 
 }
 
+func LogStorageSMSData() {
+	for _, datum := range storageSMSData {
+		log.Println(datum)
+	}
+}
+
 func FetchSMS(filename string) (parseErrCount int) {
 
 	lineCounter := 1
 
-	log.Printf(ColorCyan+"Открытие файла %s"+ColorReset, filename)
+	lib.LogParseErr(1, "Открытие файла: "+filename)
 
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Println(err)
+		lib.LogParseErr(3, err.Error())
 		return
 	}
 
@@ -99,8 +106,8 @@ func FetchSMS(filename string) (parseErrCount int) {
 			}
 
 		} else {
-			log.Printf("Ошибка количества элементов. Строка: "+
-				ColorRed+"%v"+ColorReset, lineCounter)
+			lib.LogParseErr(3, "Ошибка количества элементов. Строка: "+
+				strconv.Itoa(lineCounter))
 			parseErrCount++
 		}
 

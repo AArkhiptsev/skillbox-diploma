@@ -1,15 +1,18 @@
 package lib
 
 import (
+	"fmt"
 	"log"
 	"sort"
 	"strings"
 )
 
 const (
+	DDMMYYYYhhmmss = "2022-01-02 15:04:05"
 	ColorReset     = "\033[0m"
 	ColorRed       = "\033[31m"
 	ColorCyan      = "\033[36m"
+	ColorYellow    = "\033[33m"
 	convertErrText = "Ошибка конвертации. Параметр:"
 )
 
@@ -269,17 +272,39 @@ func GetCountryNameByAlpha(alpha string) (result string) {
 	return (countryMap[strings.ToUpper(alpha)])
 }
 
-func found(s string, a []string) bool {
+func Found(s string, a []string) bool {
 	return a[sort.SearchStrings(a, s)] == s
 }
 
-func LogStorageSMSData() {
-	for _, datum := range storageSMSData {
-		log.Println(datum)
-	}
-}
+func LogParseErr(errLevel uint8, errText string) {
 
-func logParseErr(errText, param string) {
-	log.Printf(convertErrText+ColorRed+errText+ColorReset, param)
+	result := ""
+
+	switch {
+
+	case errLevel == 0:
+		{ //info
+			result = fmt.Sprintf(ColorReset + "[INFO]: " + ColorReset + errText)
+		}
+	case errLevel == 1:
+		{ //process
+			result = fmt.Sprintf(ColorCyan + "[PRCS]: " + ColorReset + errText)
+		}
+	case errLevel == 2:
+		{ //warning
+			result = fmt.Sprintf(ColorYellow + "[WARN]: " + ColorReset + errText)
+		}
+	case errLevel == 3:
+		{ //error
+			result = fmt.Sprintf(ColorRed + "[ ERR]: " + ColorReset +
+				convertErrText + errText)
+		}
+	default:
+		{
+			result = fmt.Sprintf(ColorRed + "[INFO]: " + errText)
+		}
+	}
+
+	log.Printf(result)
 
 }
