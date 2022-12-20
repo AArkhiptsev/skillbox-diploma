@@ -54,6 +54,9 @@ func voiceCallHandler() {
 		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", voiceCallFileName,
 			fetch.FetchVoicesCall(voiceCallFileName)))
 
+	lib.LogParseErr(0, "Результат:")
+	fetch.LogStorageVoicesCallsData()
+
 	lib.LogParseErr(1,
 		fmt.Sprintf("Обработка %v завершена", voiceCallFileName))
 }

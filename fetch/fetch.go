@@ -26,7 +26,7 @@ var (
 
 type smsData struct {
 	country      string
-	bandwith     string
+	bandwidth    string
 	responseTime string
 	provider     string
 }
@@ -78,8 +78,8 @@ func (s smsData) check() (result bool) {
 		return
 	}
 
-	if _, err := strconv.Atoi(s.bandwith); err != nil {
-		lib.LogParseErr(3, " полоса пропускания: "+s.bandwith)
+	if _, err := strconv.Atoi(s.bandwidth); err != nil {
+		lib.LogParseErr(3, " полоса пропускания: "+s.bandwidth)
 		return
 	}
 
@@ -133,13 +133,6 @@ func (v VoiceCallData) check(
 		return
 	}
 
-	if a, err := strconv.Atoi(TTFB); err != nil {
-		lib.LogParseErr(3, " TTFB: "+TTFB)
-		return
-	} else {
-		v.TTFB = a
-	}
-
 	if a, err := strconv.Atoi(VoicePurity); err != nil {
 		lib.LogParseErr(3, " VoicePurity: "+VoicePurity)
 		return
@@ -152,6 +145,13 @@ func (v VoiceCallData) check(
 		return
 	} else {
 		v.MedianOfCallsTime = a
+	}
+
+	if b, err := strconv.ParseFloat(ConnectionStability, 32); err != nil {
+		lib.LogParseErr(3, " ConnectionStability: "+ConnectionStability)
+		return
+	} else {
+		v.ConnectionStability = float32(b)
 	}
 
 	result = true
@@ -167,6 +167,12 @@ func LogStorageSMSData() {
 
 func LogStorageMMSData() {
 	for _, datum := range storageMMSData {
+		log.Println(datum)
+	}
+}
+
+func LogStorageVoicesCallsData() {
+	for _, datum := range storageVoiceCallData {
 		log.Println(datum)
 	}
 }
@@ -196,7 +202,7 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 			s := smsData{
 				country:      splittedString[0],
-				bandwith:     splittedString[1],
+				bandwidth:    splittedString[1],
 				responseTime: splittedString[2],
 				provider:     splittedString[3],
 			}
@@ -311,12 +317,19 @@ func FetchVoicesCall(filename string) (parseErrCount int) {
 				Provider:     splittedString[3],
 			}
 
-			//fmt.Println(s)
+			if a, err := strconv.Atoi(splittedString[5]); err != nil {
+				lib.LogParseErr(3, " TTFB: "+splittedString[5])
+				return
+			} else {
+				s.TTFB = a
+				fmt.Println("!", s.TTFB)
+			}
 
 			if s.check(splittedString[4],
 				splittedString[5],
 				splittedString[6],
 				splittedString[7]) {
+				fmt.Println(s.TTFB)
 				storageVoiceCallData = append(storageVoiceCallData, s)
 			} else {
 				parseErrCount++
