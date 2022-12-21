@@ -20,66 +20,71 @@ const (
 var (
 	SmsProviders       = []string{"Topolo", "Rond", "Kildy"}
 	VoiceCallProviders = []string{"TransparentCalls", "E-Voice", "JustPhone"}
-	MmsProviders       = SmsProviders //работаем с копией, сделано на случай,
+	EmailProviders     = []string{"Gmail", "Yahoo", "Hotmail", "MSN", "Orange",
+		"Comcast", "AOL", "Live", "RediffMail", "GMX", "Protonmail", "Yandex", "Mail.ru"}
+	MmsProviders = SmsProviders //работаем с копией, сделано на случай,
 	// если в будущем появится иной набор провайдеров для MMS
 )
 
-type smsData struct {
-	country      string
-	bandwidth    string
-	responseTime string
-	provider     string
-}
-
-type mmsData struct {
+type headerData struct {
 	Country      string `json:"country"`
-	Provider     string `json:"provider"`
 	Bandwidth    string `json:"bandwidth"`
 	ResponseTime string `json:"response_time"`
+	Provider     string `json:"provider"`
 }
 
-type VoiceCallData struct {
-	Country             string
-	Bandwidth           string
-	ResponseTime        string
-	Provider            string
-	ConnectionStability float32
-	TTFB                int
-	VoicePurity         int
-	MedianOfCallsTime   int
+type voiceCallData struct {
+	header              headerData
+	connectionStability float32
+	tTFB                int
+	voicePurity         int
+	medianOfCallsTime   int
+}
+
+type emailData struct {
+	Country      string
+	Provider     string
+	DeliveryTime int
 }
 
 var (
-	storageSMSData       = []smsData{}
-	storageMMSData       = []mmsData{}
-	storageVoiceCallData = []VoiceCallData{}
+	storageSMSData       = []headerData{}
+	storageMMSData       = []headerData{}
+	storageVoiceCallData = []voiceCallData{}
+	storageEmail         = []emailData{}
 )
 
-func removeIndex(s []mmsData, index int) []mmsData {
+func removeIndex(s []headerData, index int) []headerData {
 	return append(s[:index], s[index+1:]...)
 }
 
-func (s smsData) check() (result bool) {
+func (s headerData) check(providers []string, lineNumber int) (result bool) {
 
 	result = false
 
-	if lib.GetCountryNameByAlpha(s.country) == "" {
-		lib.LogParseErr(3, " alpha: "+s.country)
+	if lib.GetCountryNameByAlpha(s.Country) == "" {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" alpha: %v, строка: %v", s.Country, lineNumber))
 		return
 	}
 
-	if !(lib.Found(s.provider, SmsProviders)) {
-		lib.LogParseErr(3, " провайдер: "+s.provider)
+	if !(lib.Found(s.Provider, providers)) {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" провайдер: %v, строка: %v", s.Provider, lineNumber))
 		return
 	}
 
-	if _, err := strconv.Atoi(s.responseTime); err != nil {
-		lib.LogParseErr(3, " среднее время ответа: "+s.responseTime)
+	if _, err := strconv.Atoi(s.ResponseTime); err != nil {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" среднее время ответа: %v, строка: %v",
+				s.ResponseTime, lineNumber))
 		return
 	}
 
-	if _, err := strconv.Atoi(s.bandwidth); err != nil {
-		lib.LogParseErr(3, " полоса пропускания: "+s.bandwidth)
+	if _, err := strconv.Atoi(s.Bandwidth); err != nil {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" полоса пропускания: %v, строка: %v",
+				s.Bandwidth, lineNumber))
 		return
 	}
 
@@ -89,84 +94,8 @@ func (s smsData) check() (result bool) {
 
 }
 
-func (m mmsData) check() (result bool) {
-
-	result = false
-
-	if lib.GetCountryNameByAlpha(m.Country) == "" {
-		lib.LogParseErr(3, " alpha: "+m.Country)
-		return
-	}
-
-	if !(lib.Found(m.Provider, MmsProviders)) {
-		lib.LogParseErr(3, " провайдер: "+m.Provider)
-		return
-	}
-	if _, err := strconv.Atoi(m.ResponseTime); err != nil {
-		lib.LogParseErr(3, " среднее время ответа: "+m.ResponseTime)
-		return
-	}
-
-	if _, err := strconv.Atoi(m.Bandwidth); err != nil {
-		lib.LogParseErr(3, " полоса пропускания: "+m.Bandwidth)
-		return
-	}
-
-	result = true
-
-	return
-}
-
-func (v VoiceCallData) check(
-	ConnectionStability,
-	TTFB, VoicePurity, MedianOfCallsTime string) (result bool) {
-
-	result = false
-
-	if lib.GetCountryNameByAlpha(v.Country) == "" {
-		lib.LogParseErr(3, " alpha: "+v.Country)
-		return
-	}
-
-	if !(lib.Found(v.Provider, VoiceCallProviders)) {
-		lib.LogParseErr(3, " провайдер: "+v.Provider)
-		return
-	}
-
-	if a, err := strconv.Atoi(VoicePurity); err != nil {
-		lib.LogParseErr(3, " VoicePurity: "+VoicePurity)
-		return
-	} else {
-		v.VoicePurity = a
-	}
-
-	if a, err := strconv.Atoi(MedianOfCallsTime); err != nil {
-		lib.LogParseErr(3, " MedianOfCallsTime: "+MedianOfCallsTime)
-		return
-	} else {
-		v.MedianOfCallsTime = a
-	}
-
-	if b, err := strconv.ParseFloat(ConnectionStability, 32); err != nil {
-		lib.LogParseErr(3, " ConnectionStability: "+ConnectionStability)
-		return
-	} else {
-		v.ConnectionStability = float32(b)
-	}
-
-	result = true
-
-	return
-}
-
-func LogStorageSMSData() {
+func LogStorageHeaderData() {
 	for _, datum := range storageSMSData {
-		log.Println(datum)
-	}
-}
-
-func LogStorageMMSData() {
-	for _, datum := range storageMMSData {
 		log.Println(datum)
 	}
 }
@@ -179,7 +108,7 @@ func LogStorageVoicesCallsData() {
 
 func FetchSMS(filename string) (parseErrCount int) {
 
-	lineCounter := 1
+	lineCounter := 0
 
 	lib.LogParseErr(1, "Открытие файла: "+filename)
 
@@ -200,22 +129,22 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 		if len(splittedString) == 4 {
 
-			s := smsData{
-				country:      splittedString[0],
-				bandwidth:    splittedString[1],
-				responseTime: splittedString[2],
-				provider:     splittedString[3],
+			s := headerData{
+				Country:      splittedString[0],
+				Bandwidth:    splittedString[1],
+				ResponseTime: splittedString[2],
+				Provider:     splittedString[3],
 			}
 
-			if s.check() {
+			if s.check(SmsProviders, lineCounter) {
 				storageSMSData = append(storageSMSData, s)
 			} else {
 				parseErrCount++
 			}
 
 		} else {
-			lib.LogParseErr(4, "Ошибка количества элементов. Строка: "+
-				strconv.Itoa(lineCounter))
+			lib.LogParseErr(4,
+				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
 			parseErrCount++
 		}
 
@@ -225,6 +154,9 @@ func FetchSMS(filename string) (parseErrCount int) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+
+	lib.LogParseErr(0,
+		fmt.Sprintf("Обработано строк: %v", lineCounter))
 
 	return
 
@@ -274,7 +206,7 @@ func FetchMMS(URL string) {
 
 	for i := 0; i < k; i++ {
 
-		if !(mmsData.check(storageMMSData[i])) {
+		if !(headerData.check(storageMMSData[i], MmsProviders, i)) {
 			//fmt.Println("DELETE...", i)
 			storageMMSData = removeIndex(storageMMSData, 2)
 			k--
@@ -289,7 +221,7 @@ func FetchMMS(URL string) {
 }
 
 func FetchVoicesCall(filename string) (parseErrCount int) {
-	lineCounter := 1
+	lineCounter := 0
 
 	lib.LogParseErr(1, "Открытие файла: "+filename)
 
@@ -306,43 +238,103 @@ func FetchVoicesCall(filename string) (parseErrCount int) {
 	for scanner.Scan() {
 
 		splittedString := strings.Split(scanner.Text(), csvSeparator)
-		//log.Println("Парсинг:", splittedString)
 
-		if len(splittedString) == 8 {
+		if len(splittedString) != 8 {
+			lib.LogParseErr(4,
+				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
+			parseErrCount++
+			continue
+		}
 
-			s := VoiceCallData{
+		s := voiceCallData{
+			header: headerData{
 				Country:      splittedString[0],
 				Bandwidth:    splittedString[1],
 				ResponseTime: splittedString[2],
 				Provider:     splittedString[3],
-			}
+			},
+		}
 
-			if a, err := strconv.Atoi(splittedString[5]); err != nil {
-				lib.LogParseErr(3, " TTFB: "+splittedString[5])
-				return
-			} else {
-				s.TTFB = a
-				fmt.Println("!", s.TTFB)
-			}
-
-			if s.check(splittedString[4],
-				splittedString[5],
-				splittedString[6],
-				splittedString[7]) {
-				fmt.Println(s.TTFB)
-				storageVoiceCallData = append(storageVoiceCallData, s)
-			} else {
-				parseErrCount++
-			}
-
-		} else {
-			lib.LogParseErr(4, "Ошибка количества элементов. Строка: "+
-				strconv.Itoa(lineCounter))
+		if !(s.header.check(VoiceCallProviders, lineCounter)) {
 			parseErrCount++
+			continue
+		}
 
+		b, err := strconv.ParseFloat(splittedString[4], 32)
+		if err != nil {
+			lib.LogParseErr(3,
+				fmt.Sprintf(" connectionStability: %v. строка %v",
+					splittedString[4], lineCounter))
+			parseErrCount++
+			continue
+		}
+
+		s.connectionStability = float32(b)
+
+		s.tTFB, err = strconv.Atoi(splittedString[5])
+		if err != nil {
+			lib.LogParseErr(3,
+				fmt.Sprintf(" tTFB: %v. строка %v",
+					splittedString[5], lineCounter))
+			parseErrCount++
+			continue
+		}
+
+		s.voicePurity, err = strconv.Atoi(splittedString[6])
+		if err != nil {
+			lib.LogParseErr(3,
+				fmt.Sprintf(" voicePurity:  %v. строка %v",
+					splittedString[6], lineCounter))
+			parseErrCount++
+			continue
+		}
+
+		s.medianOfCallsTime, err = strconv.Atoi(splittedString[7])
+		if err != nil {
+			lib.LogParseErr(3,
+				fmt.Sprintf(" medianOfCallsTime: %v. строка %v",
+					splittedString[7], lineCounter))
+			parseErrCount++
+			continue
 		}
 
 		lineCounter++
+
+	}
+
+	lib.LogParseErr(0,
+		fmt.Sprintf("Обработано строк без ошибок: %v", lineCounter))
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return
+
+}
+
+func FetchEmail(filename string) (parseErrCount int) {
+	lineCounter := 0
+
+	lib.LogParseErr(1, "Открытие файла: "+filename)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+
+		/* splittedString := strings.Split(scanner.Text(), csvSeparator)
+
+		log.Println(splittedString) */
+		lineCounter++
+
 	}
 
 	if err := scanner.Err(); err != nil {

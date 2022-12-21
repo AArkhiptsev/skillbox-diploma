@@ -8,12 +8,11 @@ import (
 )
 
 const (
-	DDMMYYYYhhmmss = "2022-01-02 15:04:05"
 	ColorReset     = "\033[0m"
 	ColorRed       = "\033[31m"
 	ColorCyan      = "\033[36m"
 	ColorYellow    = "\033[33m"
-	convertErrText = "Ошибка конвертации. Параметр:"
+	convertErrText = "Ошибка конвертации."
 )
 
 var countryMap = map[string]string{
@@ -284,31 +283,31 @@ func LogParseErr(errLevel uint8, errText string) {
 
 	case errLevel == 0:
 		{ //info
-			result = fmt.Sprintf(ColorReset + "[INFO]: " + ColorReset + errText)
+			result = "[INFO]: "
 		}
 	case errLevel == 1:
 		{ //process
-			result = fmt.Sprintf(ColorCyan + "[PRCS]: " + ColorReset + errText)
+			result = ColorCyan + "[PRCS]: " + ColorReset
 		}
 	case errLevel == 2:
 		{ //warning
-			result = fmt.Sprintf(ColorYellow + "[WARN]: " + ColorReset + errText)
+			result = ColorYellow + "[WARN]: " + ColorReset
 		}
 	case errLevel == 3: //Ошибка обработки (конвертации)
 		{ //error
-			result = fmt.Sprintf(ColorRed + "[ ERR]: " + ColorReset +
-				convertErrText + errText)
+			result = ColorRed + "[ ERR]:  " + ColorReset +
+				convertErrText
 		}
 	case errLevel == 4: //Ошибка
 		{ //error
-			result = fmt.Sprintf(ColorRed + "[ ERR]: " + ColorReset + errText)
+			result = ColorRed + "[ ERR]: " + ColorReset
 		}
 	default:
 		{
-			result = fmt.Sprintf(ColorRed + "[INFO]: " + errText)
+			result = ColorRed + "[INFO]: "
 		}
 	}
 
-	log.Printf(result)
+	log.Println(result, fmt.Sprintf(errText))
 
 }
