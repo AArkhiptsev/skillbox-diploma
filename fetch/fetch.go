@@ -94,6 +94,48 @@ func (s headerData) check(providers []string, lineNumber int) (result bool) {
 
 }
 
+func (s *voiceCallData) check(val []string, lineNumber int) (result bool) {
+
+	result = false
+
+	b, err := strconv.ParseFloat(val[0], 32)
+	if err != nil {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" connectionStability: %v. строка %v",
+				val[0], lineNumber))
+		return
+	}
+	s.connectionStability = float32(b)
+
+	s.tTFB, err = strconv.Atoi(val[1])
+	if err != nil {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" tTFB: %v. строка %v",
+				val[1], lineNumber))
+		return
+	}
+
+	s.voicePurity, err = strconv.Atoi(val[2])
+	if err != nil {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" voicePurity:  %v. строка %v",
+				val[2], lineNumber))
+		return
+	}
+
+	s.medianOfCallsTime, err = strconv.Atoi(val[3])
+	if err != nil {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" medianOfCallsTime: %v. строка %v",
+				val[3], lineNumber))
+		return
+	}
+
+	result = true
+
+	return
+}
+
 func LogStorageHeaderData() {
 	for _, datum := range storageSMSData {
 		log.Println(datum)
@@ -127,26 +169,25 @@ func FetchSMS(filename string) (parseErrCount int) {
 		splittedString := strings.Split(scanner.Text(), csvSeparator)
 		//log.Println("Парсинг:", splittedString)
 
-		if len(splittedString) == 4 {
-
-			s := headerData{
-				Country:      splittedString[0],
-				Bandwidth:    splittedString[1],
-				ResponseTime: splittedString[2],
-				Provider:     splittedString[3],
-			}
-
-			if s.check(SmsProviders, lineCounter) {
-				storageSMSData = append(storageSMSData, s)
-			} else {
-				parseErrCount++
-			}
-
-		} else {
+		if len(splittedString) != 4 {
 			lib.LogParseErr(4,
 				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
 			parseErrCount++
+			continue
 		}
+
+		s := headerData{
+			Country:      splittedString[0],
+			Bandwidth:    splittedString[1],
+			ResponseTime: splittedString[2],
+			Provider:     splittedString[3],
+		}
+
+		if !(s.check(SmsProviders, lineCounter)) {
+			parseErrCount++
+			continue
+		}
+		storageSMSData = append(storageSMSData, s)
 
 		lineCounter++
 	}
@@ -221,6 +262,7 @@ func FetchMMS(URL string) {
 }
 
 func FetchVoicesCall(filename string) (parseErrCount int) {
+
 	lineCounter := 0
 
 	lib.LogParseErr(1, "Открытие файла: "+filename)
@@ -260,43 +302,12 @@ func FetchVoicesCall(filename string) (parseErrCount int) {
 			continue
 		}
 
-		b, err := strconv.ParseFloat(splittedString[4], 32)
-		if err != nil {
-			lib.LogParseErr(3,
-				fmt.Sprintf(" connectionStability: %v. строка %v",
-					splittedString[4], lineCounter))
+		if !(s.check(splittedString[4:8], lineCounter)) {
 			parseErrCount++
 			continue
 		}
 
-		s.connectionStability = float32(b)
-
-		s.tTFB, err = strconv.Atoi(splittedString[5])
-		if err != nil {
-			lib.LogParseErr(3,
-				fmt.Sprintf(" tTFB: %v. строка %v",
-					splittedString[5], lineCounter))
-			parseErrCount++
-			continue
-		}
-
-		s.voicePurity, err = strconv.Atoi(splittedString[6])
-		if err != nil {
-			lib.LogParseErr(3,
-				fmt.Sprintf(" voicePurity:  %v. строка %v",
-					splittedString[6], lineCounter))
-			parseErrCount++
-			continue
-		}
-
-		s.medianOfCallsTime, err = strconv.Atoi(splittedString[7])
-		if err != nil {
-			lib.LogParseErr(3,
-				fmt.Sprintf(" medianOfCallsTime: %v. строка %v",
-					splittedString[7], lineCounter))
-			parseErrCount++
-			continue
-		}
+		storageVoiceCallData = append(storageVoiceCallData, s)
 
 		lineCounter++
 

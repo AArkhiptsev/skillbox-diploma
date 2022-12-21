@@ -86,9 +86,9 @@ func main() {
 
 	logSortProviders()
 
-	smsHandler()
+	//smsHandler()
 	voiceCallHandler()
-	emailHandler()
+	//emailHandler()
 
 	//mmsHandler()
 
