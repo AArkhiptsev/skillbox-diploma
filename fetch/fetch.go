@@ -56,12 +56,18 @@ type BillingData struct {
 	CheckoutPage   bool
 }
 
+type supportData struct {
+	Topic         string `json:"topic"`
+	ActiveTickets int    `json:"active_tickets"`
+}
+
 var (
-	storageSMSData       = []headerData{}
-	storageMMSData       = []headerData{}
+	StorageSMSData       = []headerData{}
+	StorageMMSData       = []headerData{}
 	storageVoiceCallData = []voiceCallData{}
 	storageEmail         = []emailData{}
 	storageBilling       = BillingData{}
+	storageSupportData   = []supportData{}
 )
 
 func removeIndex(s []headerData, index int) []headerData {
@@ -197,8 +203,8 @@ func (b *BillingData) parse(a int64) {
 	return
 }
 
-func LogStorageHeaderData() {
-	for _, datum := range storageSMSData {
+func LogStorageHeaderData(v []headerData) {
+	for _, datum := range v {
 		log.Println(datum)
 	}
 }
@@ -222,6 +228,12 @@ func LogStorageBilling() {
 	log.Println("Recurring      :", storageBilling.Recurring)
 	log.Println("FraudControl   :", storageBilling.FraudControl)
 	log.Println("CheckoutPage   :", storageBilling.CheckoutPage)
+}
+
+func LogSupportData() {
+	for _, datum := range storageSupportData {
+		log.Println(datum)
+	}
 }
 
 func ParseSMS(filename string) (lineCounter, parseErrCount int) {
@@ -261,7 +273,7 @@ func ParseSMS(filename string) (lineCounter, parseErrCount int) {
 			parseErrCount++
 			continue
 		}
-		storageSMSData = append(storageSMSData, s)
+		StorageSMSData = append(StorageSMSData, s)
 
 		lineCounter++
 	}
@@ -274,12 +286,12 @@ func ParseSMS(filename string) (lineCounter, parseErrCount int) {
 
 }
 
-func ParseMMS(URL string) {
+func requestContent(URL string) (content []byte, err error) {
 
 	resp, err := http.Get(URL)
 
 	if err != nil {
-		lib.LogParseErr(4, err.Error())
+		//lib.LogParseErr(4, err.Error())
 		return
 	}
 
@@ -295,7 +307,8 @@ func ParseMMS(URL string) {
 		fmt.Sprintf("Код ответа сервера: %v", resp.StatusCode))
 
 	lib.LogParseErr(1, "Произведем JSON разбор...")
-	content, err := io.ReadAll(resp.Body)
+
+	content, err = io.ReadAll(resp.Body)
 
 	if err != nil {
 		lib.LogParseErr(0,
@@ -303,24 +316,36 @@ func ParseMMS(URL string) {
 		return
 	}
 
-	if err := json.Unmarshal(content, &storageMMSData); err != nil {
+	return
+}
+
+func ParseMMS(URL string) {
+
+	content, err := requestContent(URL)
+
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	if err := json.Unmarshal(content, &StorageMMSData); err != nil {
 		lib.LogParseErr(4, err.Error())
 		return
 	}
 
 	lib.LogParseErr(1,
-		fmt.Sprintf("Разбор JSON произведен. Записей %v", len(storageMMSData)))
+		fmt.Sprintf("Разбор JSON произведен. Записей %v", len(StorageMMSData)))
 
 	lib.LogParseErr(1, "Проверка на корректность значений...")
 
-	k := len(storageMMSData)
+	k := len(StorageMMSData)
 	errCount := 0
 
 	for i := 0; i < k; i++ {
 
-		if !(headerData.check(storageMMSData[i], MmsProviders, i)) {
+		if !(headerData.check(StorageMMSData[i], MmsProviders, i)) {
 			//fmt.Println("DELETE...", i)
-			storageMMSData = removeIndex(storageMMSData, 2)
+			StorageMMSData = removeIndex(StorageMMSData, 2)
 			k--
 			errCount++
 		}
@@ -328,7 +353,28 @@ func ParseMMS(URL string) {
 	}
 
 	lib.LogParseErr(1,
-		fmt.Sprintf("Проверка корректности произведена. Записей %v", len(storageMMSData)))
+		fmt.Sprintf("Проверка корректности произведена. Записей %v", len(StorageMMSData)))
+
+}
+
+func ParseSupport(URL string) {
+
+	content, err := requestContent(URL)
+
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	if err := json.Unmarshal(content, &storageSupportData); err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Разбор JSON произведен. Записей %v", len(storageSupportData)))
+
+	lib.LogParseErr(1, "Проверка на корректность значений...")
 
 }
 
