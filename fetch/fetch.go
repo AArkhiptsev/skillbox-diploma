@@ -47,11 +47,21 @@ type emailData struct {
 	DeliveryTime int
 }
 
+type BillingData struct {
+	CreateCustomer bool
+	Purchase       bool
+	Payout         bool
+	Recurring      bool
+	FraudControl   bool
+	CheckoutPage   bool
+}
+
 var (
 	storageSMSData       = []headerData{}
 	storageMMSData       = []headerData{}
 	storageVoiceCallData = []voiceCallData{}
 	storageEmail         = []emailData{}
+	storageBilling       = BillingData{}
 )
 
 func removeIndex(s []headerData, index int) []headerData {
@@ -165,6 +175,28 @@ func (s *emailData) check(providers []string, deliveryTime string, lineNumber in
 
 }
 
+func checkBit(a byte) (result bool) {
+	result = false
+	if a == 49 {
+		result = true
+	}
+	return
+}
+
+func (b *BillingData) parse(a int64) {
+
+	bits := []byte(strconv.FormatInt(int64(a), 2))
+
+	b.CreateCustomer = checkBit(bits[0])
+	b.Purchase = checkBit(bits[1])
+	b.Payout = checkBit(bits[2])
+	b.Recurring = checkBit(bits[3])
+	b.FraudControl = checkBit(bits[4])
+	b.CheckoutPage = checkBit(bits[5])
+
+	return
+}
+
 func LogStorageHeaderData() {
 	for _, datum := range storageSMSData {
 		log.Println(datum)
@@ -183,9 +215,16 @@ func LogStorageEmailData() {
 	}
 }
 
-func ParseSMS(filename string) (parseErrCount int) {
+func LogStorageBilling() {
+	log.Println("CreateCustomer :", storageBilling.CreateCustomer)
+	log.Println("Purchase       :", storageBilling.Purchase)
+	log.Println("Payout         :", storageBilling.Payout)
+	log.Println("Recurring      :", storageBilling.Recurring)
+	log.Println("FraudControl   :", storageBilling.FraudControl)
+	log.Println("CheckoutPage   :", storageBilling.CheckoutPage)
+}
 
-	lineCounter := 0
+func ParseSMS(filename string) (lineCounter, parseErrCount int) {
 
 	lib.LogParseErr(1, "Открытие файла: "+filename)
 
@@ -230,9 +269,6 @@ func ParseSMS(filename string) (parseErrCount int) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-
-	lib.LogParseErr(0,
-		fmt.Sprintf("Обработано строк: %v", lineCounter))
 
 	return
 
@@ -408,4 +444,42 @@ func ParseEmail(filename string) (parseErrCount int) {
 
 	return
 
+}
+
+func ParseBilling(filename string) (parseErrCount int) {
+	lineCounter := 0
+
+	lib.LogParseErr(1, "Открытие файла: "+filename)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+
+		//	fmt.Println(scanner.Text())
+
+		i, err := strconv.ParseInt(scanner.Text(), 2, 64)
+
+		if err != nil {
+			lib.LogParseErr(4, "Ошибка конвертации строки. "+err.Error())
+			parseErrCount++
+			return
+		}
+
+		lib.LogParseErr(0,
+			fmt.Sprintf("Значение в dec- формате: %d, в bin- формате:  %b", i, i))
+
+		storageBilling.parse(i)
+
+		lineCounter++
+	}
+
+	return
 }

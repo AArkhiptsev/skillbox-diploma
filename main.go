@@ -11,6 +11,7 @@ const (
 	smsFileName       = "../emul/sms.data"
 	voiceCallFileName = "../emul/voice.data"
 	emailFileName     = "../emul/email.data"
+	billingFileName   = "../emul/billing.data"
 	mmsDataServer     = "http://127.0.0.1:8383/mms"
 )
 
@@ -32,9 +33,10 @@ func logSortProviders() {
 func smsHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла SMS")
+	line, errCount := fetch.ParseSMS(smsFileName)
+	lib.LogParseErr(1, fmt.Sprintf("Разобран файл %v", smsFileName))
 	lib.LogParseErr(2,
-		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", smsFileName,
-			fetch.ParseSMS(smsFileName)))
+		fmt.Sprintf("Разобрано строк: %v, ошибок: %v", line, errCount))
 
 	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageHeaderData()
@@ -84,6 +86,19 @@ func emailHandler() {
 		fmt.Sprintf("Обработка %v завершена", emailFileName))
 }
 
+func billingHandler() {
+	lib.LogParseErr(1, "Начат разбор файла Billing")
+	lib.LogParseErr(2,
+		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", billingFileName,
+			fetch.ParseBilling(billingFileName)))
+
+	lib.LogParseErr(0, "Результат:")
+	fetch.LogStorageBilling()
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Обработка %v завершена", billingFileName))
+}
+
 func main() {
 
 	lib.LogParseErr(0, "Старт...")
@@ -92,7 +107,8 @@ func main() {
 
 	//smsHandler()
 	//voiceCallHandler()
-	emailHandler()
+	//emailHandler()
+	billingHandler()
 
 	//mmsHandler()
 
