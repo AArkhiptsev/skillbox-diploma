@@ -22,7 +22,8 @@ var (
 	VoiceCallProviders = []string{"TransparentCalls", "E-Voice", "JustPhone"}
 	EmailProviders     = []string{"Gmail", "Yahoo", "Hotmail", "MSN", "Orange",
 		"Comcast", "AOL", "Live", "RediffMail", "GMX", "Protonmail", "Yandex", "Mail.ru"}
-	MmsProviders = SmsProviders //работаем с копией, сделано на случай,
+	AccidentStatus = []string{"closed", "active"}
+	MmsProviders   = SmsProviders //работаем с копией, сделано на случай,
 	// если в будущем появится иной набор провайдеров для MMS
 )
 
@@ -61,6 +62,30 @@ type supportData struct {
 	ActiveTickets int    `json:"active_tickets"`
 }
 
+type AccidentData struct {
+	Topic  string `json:"topic"`
+	Status string `json:"status"` // возможные статусы active и	closed
+}
+
+type ResultT struct {
+	Status bool `json:"status"` // true, если все этапы сбора данных прошли успешно,
+	// false во всех остальных случаях
+	Data ResultSetT `json:"data"` // заполнен, если все этапы сбора данных прошли успешно,
+	// nil во всех остальных случаях
+	Error string `json:"error"` // пустая строка если все этапы сбора данных прошли успешно, в случае ошибки заполнено текстом ошибки
+	//(детали ниже)
+}
+
+type ResultSetT struct {
+	SMS       [][]headerData           `json:"sms"`
+	MMS       [][]headerData           `json:"mms"`
+	VoiceCall []voiceCallData          `json:"voice_call"`
+	Email     map[string][][]emailData `json:"email"`
+	Billing   BillingData              `json:"billing"`
+	Support   []int                    `json:"support"`
+	Incidents []AccidentData           `json:"incident"`
+}
+
 var (
 	StorageSMSData       = []headerData{}
 	StorageMMSData       = []headerData{}
@@ -68,11 +93,8 @@ var (
 	storageEmail         = []emailData{}
 	storageBilling       = BillingData{}
 	storageSupportData   = []supportData{}
+	storageAccidentData  = []AccidentData{}
 )
-
-func removeIndex(s []headerData, index int) []headerData {
-	return append(s[:index], s[index+1:]...)
-}
 
 func (s headerData) check(providers []string, lineNumber int) (result bool) {
 
@@ -181,6 +203,22 @@ func (s *emailData) check(providers []string, deliveryTime string, lineNumber in
 
 }
 
+func (s AccidentData) check(statuses []string, lineNumber int) (result bool) {
+
+	result = false
+
+	if !(lib.Found(s.Status, statuses)) {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" статус: %v, строка: %v", s.Status, lineNumber))
+		return
+	}
+
+	result = true
+
+	return
+
+}
+
 func checkBit(a byte) (result bool) {
 	result = false
 	if a == 49 {
@@ -232,6 +270,12 @@ func LogStorageBilling() {
 
 func LogSupportData() {
 	for _, datum := range storageSupportData {
+		log.Println(datum)
+	}
+}
+
+func LogStorageAccidentData() {
+	for _, datum := range storageAccidentData {
 		log.Println(datum)
 	}
 }
@@ -344,8 +388,8 @@ func ParseMMS(URL string) {
 	for i := 0; i < k; i++ {
 
 		if !(headerData.check(StorageMMSData[i], MmsProviders, i)) {
-			//fmt.Println("DELETE...", i)
-			StorageMMSData = removeIndex(StorageMMSData, 2)
+			StorageMMSData = append(StorageMMSData[:i],
+				StorageMMSData[i+1:]...)
 			k--
 			errCount++
 		}
@@ -355,6 +399,45 @@ func ParseMMS(URL string) {
 	lib.LogParseErr(1,
 		fmt.Sprintf("Проверка корректности произведена. Записей %v", len(StorageMMSData)))
 
+}
+
+func ParseAccident(URL string) {
+
+	content, err := requestContent(URL)
+
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	if err := json.Unmarshal(content, &storageAccidentData); err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Разбор JSON произведен. Записей %v", len(storageAccidentData)))
+
+	lib.LogParseErr(1, "Проверка на корректность значений...")
+
+	k := len(storageAccidentData)
+	errCount := 0
+
+	for i := 0; i < k; i++ {
+
+		if !(AccidentData.check(storageAccidentData[i], AccidentStatus, i)) {
+			storageAccidentData = append(storageAccidentData[:i],
+				storageAccidentData[i+1:]...)
+			k--
+			errCount++
+		}
+
+	}
+
+	lib.LogParseErr(1,
+		fmt.Sprintf("Проверка корректности произведена. Записей %v", len(storageAccidentData)))
+
+	return
 }
 
 func ParseSupport(URL string) {

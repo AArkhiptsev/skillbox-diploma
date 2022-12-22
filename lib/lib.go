@@ -5,14 +5,16 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"time"
 )
 
 const (
-	ColorReset     = "\033[0m"
-	ColorRed       = "\033[31m"
-	ColorCyan      = "\033[36m"
-	ColorYellow    = "\033[33m"
-	convertErrText = "Ошибка конвертации."
+	ColorReset      = "\033[0m"
+	ColorRed        = "\033[31m"
+	ColorCyan       = "\033[36m"
+	ColorYellow     = "\033[33m"
+	convertErrText  = "Ошибка конвертации."
+	spinnerTemplate = `-\|/`
 )
 
 var countryMap = map[string]string{
@@ -310,4 +312,13 @@ func LogParseErr(errLevel uint8, errText string) {
 
 	log.Println(result, fmt.Sprintf(errText))
 
+}
+
+func Spinner(delay time.Duration) {
+	for {
+		for _, r := range spinnerTemplate {
+			fmt.Printf("\r%c", r)
+			time.Sleep(delay)
+		}
+	}
 }

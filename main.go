@@ -3,8 +3,10 @@ package main
 import (
 	"diploma/fetch"
 	"diploma/lib"
+	"diploma/serve"
 	"fmt"
 	"sort"
+	"time"
 )
 
 const (
@@ -14,6 +16,7 @@ const (
 	billingFileName   = "../emul/billing.data"
 	mmsDataServer     = "http://127.0.0.1:8383/mms"
 	supportServer     = "http://127.0.0.1:8383/support"
+	accidentServer    = "http://127.0.0.1:8383/accendent"
 )
 
 func init() {
@@ -21,6 +24,7 @@ func init() {
 	sort.Strings(fetch.MmsProviders)
 	sort.Strings(fetch.VoiceCallProviders)
 	sort.Strings(fetch.EmailProviders)
+	sort.Strings(fetch.AccidentStatus)
 
 }
 
@@ -29,6 +33,7 @@ func logSortProviders() {
 	lib.LogParseErr(0, fmt.Sprintf("SMS: %v", fetch.SmsProviders))
 	lib.LogParseErr(0, fmt.Sprintf("Voice Calls: %v", fetch.VoiceCallProviders))
 	lib.LogParseErr(0, fmt.Sprintf("Email: %v", fetch.EmailProviders))
+	lib.LogParseErr(0, fmt.Sprintf("Accident Status: %v", fetch.AccidentStatus))
 }
 
 func smsHandler() {
@@ -110,19 +115,36 @@ func billingHandler() {
 		fmt.Sprintf("Обработка %v завершена", billingFileName))
 }
 
+func accidentHandler() {
+
+	lib.LogParseErr(1, "Запросим данные об инцидентах "+accidentServer)
+	fetch.ParseAccident(accidentServer)
+
+	lib.LogParseErr(0, "Результат:")
+	fetch.LogStorageAccidentData()
+
+	lib.LogParseErr(1, "Обработка инцидентов завершена")
+
+}
+
 func main() {
 
 	lib.LogParseErr(0, "Старт...")
 
 	logSortProviders()
 
-	smsHandler()
-	voiceCallHandler()
-	emailHandler()
+	//smsHandler()
+	//voiceCallHandler()
+	//emailHandler()
 	//billingHandler()
 
-	supportHandler()
-	mmsHandler()
+	//supportHandler()
+	//mmsHandler()
+	accidentHandler()
 
-	lib.LogParseErr(0, "Завершение...")
+	lib.LogParseErr(0, "Сбор данных завершен.")
+
+	go lib.Spinner(80 * time.Millisecond)
+	serve.ListenAndServeHTTP()
+
 }
