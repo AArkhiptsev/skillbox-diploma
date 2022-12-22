@@ -136,6 +136,35 @@ func (s *voiceCallData) check(val []string, lineNumber int) (result bool) {
 	return
 }
 
+func (s *emailData) check(providers []string, deliveryTime string, lineNumber int) (result bool) {
+	result = false
+
+	if lib.GetCountryNameByAlpha(s.Country) == "" {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" alpha: %v, строка: %v", s.Country, lineNumber))
+		return
+	}
+
+	if !(lib.Found(s.Provider, providers)) {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" провайдер: %v, строка: %v", s.Provider, lineNumber))
+		return
+	}
+
+	b, err := strconv.Atoi(deliveryTime)
+	if err != nil {
+		lib.LogParseErr(3,
+			fmt.Sprintf(" среднее время ответа: %v, строка: %v",
+				deliveryTime, lineNumber))
+		return
+	}
+	s.DeliveryTime = b
+
+	result = true
+	return
+
+}
+
 func LogStorageHeaderData() {
 	for _, datum := range storageSMSData {
 		log.Println(datum)
@@ -148,7 +177,13 @@ func LogStorageVoicesCallsData() {
 	}
 }
 
-func FetchSMS(filename string) (parseErrCount int) {
+func LogStorageEmailData() {
+	for _, datum := range storageEmail {
+		log.Println(datum)
+	}
+}
+
+func ParseSMS(filename string) (parseErrCount int) {
 
 	lineCounter := 0
 
@@ -166,10 +201,10 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 	for scanner.Scan() {
 
-		splittedString := strings.Split(scanner.Text(), csvSeparator)
-		//log.Println("Парсинг:", splittedString)
+		splitString := strings.Split(scanner.Text(), csvSeparator)
+		//log.Println("Парсинг:", splitString)
 
-		if len(splittedString) != 4 {
+		if len(splitString) != 4 {
 			lib.LogParseErr(4,
 				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
 			parseErrCount++
@@ -177,10 +212,10 @@ func FetchSMS(filename string) (parseErrCount int) {
 		}
 
 		s := headerData{
-			Country:      splittedString[0],
-			Bandwidth:    splittedString[1],
-			ResponseTime: splittedString[2],
-			Provider:     splittedString[3],
+			Country:      splitString[0],
+			Bandwidth:    splitString[1],
+			ResponseTime: splitString[2],
+			Provider:     splitString[3],
 		}
 
 		if !(s.check(SmsProviders, lineCounter)) {
@@ -203,7 +238,7 @@ func FetchSMS(filename string) (parseErrCount int) {
 
 }
 
-func FetchMMS(URL string) {
+func ParseMMS(URL string) {
 
 	resp, err := http.Get(URL)
 
@@ -261,7 +296,7 @@ func FetchMMS(URL string) {
 
 }
 
-func FetchVoicesCall(filename string) (parseErrCount int) {
+func PatchVoicesCall(filename string) (parseErrCount int) {
 
 	lineCounter := 0
 
@@ -279,9 +314,9 @@ func FetchVoicesCall(filename string) (parseErrCount int) {
 
 	for scanner.Scan() {
 
-		splittedString := strings.Split(scanner.Text(), csvSeparator)
+		splitString := strings.Split(scanner.Text(), csvSeparator)
 
-		if len(splittedString) != 8 {
+		if len(splitString) != 8 {
 			lib.LogParseErr(4,
 				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
 			parseErrCount++
@@ -290,10 +325,10 @@ func FetchVoicesCall(filename string) (parseErrCount int) {
 
 		s := voiceCallData{
 			header: headerData{
-				Country:      splittedString[0],
-				Bandwidth:    splittedString[1],
-				ResponseTime: splittedString[2],
-				Provider:     splittedString[3],
+				Country:      splitString[0],
+				Bandwidth:    splitString[1],
+				ResponseTime: splitString[2],
+				Provider:     splitString[3],
 			},
 		}
 
@@ -302,7 +337,7 @@ func FetchVoicesCall(filename string) (parseErrCount int) {
 			continue
 		}
 
-		if !(s.check(splittedString[4:8], lineCounter)) {
+		if !(s.check(splitString[4:8], lineCounter)) {
 			parseErrCount++
 			continue
 		}
@@ -324,7 +359,7 @@ func FetchVoicesCall(filename string) (parseErrCount int) {
 
 }
 
-func FetchEmail(filename string) (parseErrCount int) {
+func ParseEmail(filename string) (parseErrCount int) {
 	lineCounter := 0
 
 	lib.LogParseErr(1, "Открытие файла: "+filename)
@@ -341,9 +376,28 @@ func FetchEmail(filename string) (parseErrCount int) {
 
 	for scanner.Scan() {
 
-		/* splittedString := strings.Split(scanner.Text(), csvSeparator)
+		splitString := strings.Split(scanner.Text(), csvSeparator)
 
-		log.Println(splittedString) */
+		//log.Println(splitString)
+
+		if len(splitString) != 3 {
+			lib.LogParseErr(4,
+				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
+			parseErrCount++
+			continue
+		}
+
+		s := emailData{
+			Country:  splitString[0],
+			Provider: splitString[1],
+		}
+
+		if !(s.check(EmailProviders, splitString[2], lineCounter)) {
+			parseErrCount++
+			continue
+		}
+
+		storageEmail = append(storageEmail, s)
 		lineCounter++
 
 	}

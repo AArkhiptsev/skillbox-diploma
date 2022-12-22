@@ -34,7 +34,7 @@ func smsHandler() {
 	lib.LogParseErr(1, "Начат разбор файла SMS")
 	lib.LogParseErr(2,
 		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", smsFileName,
-			fetch.FetchSMS(smsFileName)))
+			fetch.ParseSMS(smsFileName)))
 
 	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageHeaderData()
@@ -47,7 +47,7 @@ func smsHandler() {
 func mmsHandler() {
 
 	lib.LogParseErr(1, "Запросим данные об MMS "+mmsDataServer)
-	fetch.FetchMMS(mmsDataServer)
+	fetch.ParseMMS(mmsDataServer)
 
 	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageHeaderData()
@@ -61,7 +61,7 @@ func voiceCallHandler() {
 	lib.LogParseErr(1, "Начат разбор файла Voice Calls")
 	lib.LogParseErr(2,
 		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", voiceCallFileName,
-			fetch.FetchVoicesCall(voiceCallFileName)))
+			fetch.PatchVoicesCall(voiceCallFileName)))
 
 	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageVoicesCallsData()
@@ -73,8 +73,12 @@ func voiceCallHandler() {
 func emailHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла Email")
+	lib.LogParseErr(2,
+		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", voiceCallFileName,
+			fetch.ParseEmail(emailFileName)))
 
-	fetch.FetchEmail(emailFileName)
+	lib.LogParseErr(0, "Результат:")
+	fetch.LogStorageEmailData()
 
 	lib.LogParseErr(1,
 		fmt.Sprintf("Обработка %v завершена", emailFileName))
@@ -87,8 +91,8 @@ func main() {
 	logSortProviders()
 
 	//smsHandler()
-	voiceCallHandler()
-	//emailHandler()
+	//voiceCallHandler()
+	emailHandler()
 
 	//mmsHandler()
 
