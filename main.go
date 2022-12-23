@@ -40,11 +40,8 @@ func smsHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла SMS")
 	line, errCount := fetch.ParseSMS(smsFileName)
-	lib.LogParseErr(1, fmt.Sprintf("Разобран файл %v", smsFileName))
-	lib.LogParseErr(2,
-		fmt.Sprintf("Разобрано строк: %v, ошибок: %v", line, errCount))
+	lib.StdParseMessage(smsFileName, line, errCount)
 
-	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageHeaderData(fetch.StorageSMSData)
 
 	lib.LogParseErr(1,
@@ -77,9 +74,10 @@ func supportHandler() {
 func voiceCallHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла Voice Calls")
-	lib.LogParseErr(2,
-		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", voiceCallFileName,
-			fetch.PatchVoicesCall(voiceCallFileName)))
+	line, errCount := fetch.ParseVoicesCall(voiceCallFileName)
+	lib.StdParseMessage(voiceCallFileName, line, errCount)
+
+	fetch.LogStorageHeaderData(fetch.StorageSMSData)
 
 	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageVoicesCallsData()
@@ -91,9 +89,8 @@ func voiceCallHandler() {
 func emailHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла Email")
-	lib.LogParseErr(2,
-		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", voiceCallFileName,
-			fetch.ParseEmail(emailFileName)))
+	line, errCount := fetch.ParseEmail(emailFileName)
+	lib.StdParseMessage(emailFileName, line, errCount)
 
 	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageEmailData()
@@ -104,9 +101,8 @@ func emailHandler() {
 
 func billingHandler() {
 	lib.LogParseErr(1, "Начат разбор файла Billing")
-	lib.LogParseErr(2,
-		fmt.Sprintf("Разобран файл %v, ошибок разбора %v", billingFileName,
-			fetch.ParseBilling(billingFileName)))
+	line, errCount := fetch.ParseBilling(billingFileName)
+	lib.StdParseMessage(billingFileName, line, errCount)
 
 	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageBilling()
@@ -133,14 +129,14 @@ func main() {
 
 	logSortProviders()
 
-	//smsHandler()
+	smsHandler()
 	//voiceCallHandler()
 	//emailHandler()
 	//billingHandler()
 
 	//supportHandler()
 	//mmsHandler()
-	accidentHandler()
+	//accidentHandler()
 
 	lib.LogParseErr(0, "Сбор данных завершен.")
 

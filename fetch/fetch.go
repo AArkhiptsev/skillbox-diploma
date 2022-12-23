@@ -281,6 +281,154 @@ func ParseSMS(filename string) (lineCounter, parseErrCount int) {
 
 }
 
+func ParseVoicesCall(filename string) (lineCounter, parseErrCount int) {
+
+	lib.LogParseErr(1, "Открытие файла: "+filename)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+
+		splitString := strings.Split(scanner.Text(), csvSeparator)
+
+		if len(splitString) != 8 {
+			lib.LogParseErr(4,
+				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
+			parseErrCount++
+			continue
+		}
+
+		s := voiceCallData{
+			header: headerData{
+				Country:      splitString[0],
+				Bandwidth:    splitString[1],
+				ResponseTime: splitString[2],
+				Provider:     splitString[3],
+			},
+		}
+
+		if !(s.header.check(VoiceCallProviders, lineCounter)) {
+			parseErrCount++
+			continue
+		}
+
+		if !(s.check(splitString[4:8], lineCounter)) {
+			parseErrCount++
+			continue
+		}
+
+		storageVoiceCallData = append(storageVoiceCallData, s)
+
+		lineCounter++
+
+	}
+
+	lib.LogParseErr(0,
+		fmt.Sprintf("Обработано строк без ошибок: %v", lineCounter))
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return
+
+}
+
+func ParseEmail(filename string) (lineCounter, parseErrCount int) {
+
+	lib.LogParseErr(1, "Открытие файла: "+filename)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+
+		splitString := strings.Split(scanner.Text(), csvSeparator)
+
+		//log.Println(splitString)
+
+		if len(splitString) != 3 {
+			lib.LogParseErr(4,
+				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
+			parseErrCount++
+			continue
+		}
+
+		s := emailData{
+			Country:  splitString[0],
+			Provider: splitString[1],
+		}
+
+		if !(s.check(EmailProviders, splitString[2], lineCounter)) {
+			parseErrCount++
+			continue
+		}
+
+		storageEmail = append(storageEmail, s)
+		lineCounter++
+
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return
+
+}
+
+func ParseBilling(filename string) (lineCounter, parseErrCount int) {
+
+	lib.LogParseErr(1, "Открытие файла: "+filename)
+
+	file, err := os.Open(filename)
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+
+		//	fmt.Println(scanner.Text())
+
+		i, err := strconv.ParseInt(scanner.Text(), 2, 64)
+
+		if err != nil {
+			lib.LogParseErr(4, "Ошибка конвертации строки. "+err.Error())
+			parseErrCount++
+			return
+		}
+
+		lib.LogParseErr(0,
+			fmt.Sprintf("Значение в dec- формате: %d, в bin- формате:  %b", i, i))
+
+		storageBilling.parse(i)
+
+		lineCounter++
+	}
+
+	return
+}
+
 func ParseMMS(URL string) {
 
 	content, err := lib.RequestContent(URL)
@@ -377,156 +525,4 @@ func ParseSupport(URL string) {
 
 	lib.LogParseErr(1, "Проверка на корректность значений...")
 
-}
-
-func PatchVoicesCall(filename string) (parseErrCount int) {
-
-	lineCounter := 0
-
-	lib.LogParseErr(1, "Открытие файла: "+filename)
-
-	file, err := os.Open(filename)
-	if err != nil {
-		lib.LogParseErr(4, err.Error())
-		return
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-
-		splitString := strings.Split(scanner.Text(), csvSeparator)
-
-		if len(splitString) != 8 {
-			lib.LogParseErr(4,
-				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
-			parseErrCount++
-			continue
-		}
-
-		s := voiceCallData{
-			header: headerData{
-				Country:      splitString[0],
-				Bandwidth:    splitString[1],
-				ResponseTime: splitString[2],
-				Provider:     splitString[3],
-			},
-		}
-
-		if !(s.header.check(VoiceCallProviders, lineCounter)) {
-			parseErrCount++
-			continue
-		}
-
-		if !(s.check(splitString[4:8], lineCounter)) {
-			parseErrCount++
-			continue
-		}
-
-		storageVoiceCallData = append(storageVoiceCallData, s)
-
-		lineCounter++
-
-	}
-
-	lib.LogParseErr(0,
-		fmt.Sprintf("Обработано строк без ошибок: %v", lineCounter))
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	return
-
-}
-
-func ParseEmail(filename string) (parseErrCount int) {
-	lineCounter := 0
-
-	lib.LogParseErr(1, "Открытие файла: "+filename)
-
-	file, err := os.Open(filename)
-	if err != nil {
-		lib.LogParseErr(4, err.Error())
-		return
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-
-		splitString := strings.Split(scanner.Text(), csvSeparator)
-
-		//log.Println(splitString)
-
-		if len(splitString) != 3 {
-			lib.LogParseErr(4,
-				fmt.Sprintf("Ошибка количества элементов. Строка: %v", lineCounter))
-			parseErrCount++
-			continue
-		}
-
-		s := emailData{
-			Country:  splitString[0],
-			Provider: splitString[1],
-		}
-
-		if !(s.check(EmailProviders, splitString[2], lineCounter)) {
-			parseErrCount++
-			continue
-		}
-
-		storageEmail = append(storageEmail, s)
-		lineCounter++
-
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	return
-
-}
-
-func ParseBilling(filename string) (parseErrCount int) {
-	lineCounter := 0
-
-	lib.LogParseErr(1, "Открытие файла: "+filename)
-
-	file, err := os.Open(filename)
-	if err != nil {
-		lib.LogParseErr(4, err.Error())
-		return
-	}
-
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-
-		//	fmt.Println(scanner.Text())
-
-		i, err := strconv.ParseInt(scanner.Text(), 2, 64)
-
-		if err != nil {
-			lib.LogParseErr(4, "Ошибка конвертации строки. "+err.Error())
-			parseErrCount++
-			return
-		}
-
-		lib.LogParseErr(0,
-			fmt.Sprintf("Значение в dec- формате: %d, в bin- формате:  %b", i, i))
-
-		storageBilling.parse(i)
-
-		lineCounter++
-	}
-
-	return
 }

@@ -365,3 +365,12 @@ func RequestContent(URL string) (content []byte, err error) {
 
 	return
 }
+
+func StdParseMessage(smsFileName string, line, errCount int) {
+	LogParseErr(1, fmt.Sprintf("Разобран файл %v", smsFileName))
+	LogParseErr(2,
+		fmt.Sprintf("Разобрано строк: %v, ошибок: %v", line, errCount))
+
+	LogParseErr(0, "Результат:")
+
+}
