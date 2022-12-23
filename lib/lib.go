@@ -2,7 +2,9 @@ package lib
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -321,4 +323,45 @@ func Spinner(delay time.Duration) {
 			time.Sleep(delay)
 		}
 	}
+}
+
+func CheckBit(a byte) (result bool) {
+	result = false
+	if a == 49 {
+		result = true
+	}
+	return
+}
+
+func RequestContent(URL string) (content []byte, err error) {
+
+	resp, err := http.Get(URL)
+
+	if err != nil {
+		//lib.LogParseErr(4, err.Error())
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		LogParseErr(4,
+			fmt.Sprintf("Код ответа сервера: %v", resp.StatusCode))
+		return
+	}
+
+	LogParseErr(0,
+		fmt.Sprintf("Код ответа сервера: %v", resp.StatusCode))
+
+	LogParseErr(1, "Произведем JSON разбор...")
+
+	content, err = io.ReadAll(resp.Body)
+
+	if err != nil {
+		LogParseErr(0,
+			fmt.Sprintf("Ошибка чтения Body: %v", err.Error()))
+		return
+	}
+
+	return
 }

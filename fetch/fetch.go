@@ -5,9 +5,7 @@ import (
 	"diploma/lib"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -219,65 +217,18 @@ func (s AccidentData) check(statuses []string, lineNumber int) (result bool) {
 
 }
 
-func checkBit(a byte) (result bool) {
-	result = false
-	if a == 49 {
-		result = true
-	}
-	return
-}
-
 func (b *BillingData) parse(a int64) {
 
 	bits := []byte(strconv.FormatInt(int64(a), 2))
 
-	b.CreateCustomer = checkBit(bits[0])
-	b.Purchase = checkBit(bits[1])
-	b.Payout = checkBit(bits[2])
-	b.Recurring = checkBit(bits[3])
-	b.FraudControl = checkBit(bits[4])
-	b.CheckoutPage = checkBit(bits[5])
+	b.CreateCustomer = lib.CheckBit(bits[0])
+	b.Purchase = lib.CheckBit(bits[1])
+	b.Payout = lib.CheckBit(bits[2])
+	b.Recurring = lib.CheckBit(bits[3])
+	b.FraudControl = lib.CheckBit(bits[4])
+	b.CheckoutPage = lib.CheckBit(bits[5])
 
 	return
-}
-
-func LogStorageHeaderData(v []headerData) {
-	for _, datum := range v {
-		log.Println(datum)
-	}
-}
-
-func LogStorageVoicesCallsData() {
-	for _, datum := range storageVoiceCallData {
-		log.Println(datum)
-	}
-}
-
-func LogStorageEmailData() {
-	for _, datum := range storageEmail {
-		log.Println(datum)
-	}
-}
-
-func LogStorageBilling() {
-	log.Println("CreateCustomer :", storageBilling.CreateCustomer)
-	log.Println("Purchase       :", storageBilling.Purchase)
-	log.Println("Payout         :", storageBilling.Payout)
-	log.Println("Recurring      :", storageBilling.Recurring)
-	log.Println("FraudControl   :", storageBilling.FraudControl)
-	log.Println("CheckoutPage   :", storageBilling.CheckoutPage)
-}
-
-func LogSupportData() {
-	for _, datum := range storageSupportData {
-		log.Println(datum)
-	}
-}
-
-func LogStorageAccidentData() {
-	for _, datum := range storageAccidentData {
-		log.Println(datum)
-	}
 }
 
 func ParseSMS(filename string) (lineCounter, parseErrCount int) {
@@ -330,42 +281,9 @@ func ParseSMS(filename string) (lineCounter, parseErrCount int) {
 
 }
 
-func requestContent(URL string) (content []byte, err error) {
-
-	resp, err := http.Get(URL)
-
-	if err != nil {
-		//lib.LogParseErr(4, err.Error())
-		return
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		lib.LogParseErr(4,
-			fmt.Sprintf("Код ответа сервера: %v", resp.StatusCode))
-		return
-	}
-
-	lib.LogParseErr(0,
-		fmt.Sprintf("Код ответа сервера: %v", resp.StatusCode))
-
-	lib.LogParseErr(1, "Произведем JSON разбор...")
-
-	content, err = io.ReadAll(resp.Body)
-
-	if err != nil {
-		lib.LogParseErr(0,
-			fmt.Sprintf("Ошибка чтения Body: %v", err.Error()))
-		return
-	}
-
-	return
-}
-
 func ParseMMS(URL string) {
 
-	content, err := requestContent(URL)
+	content, err := lib.RequestContent(URL)
 
 	if err != nil {
 		lib.LogParseErr(4, err.Error())
@@ -403,7 +321,7 @@ func ParseMMS(URL string) {
 
 func ParseAccident(URL string) {
 
-	content, err := requestContent(URL)
+	content, err := lib.RequestContent(URL)
 
 	if err != nil {
 		lib.LogParseErr(4, err.Error())
@@ -442,7 +360,7 @@ func ParseAccident(URL string) {
 
 func ParseSupport(URL string) {
 
-	content, err := requestContent(URL)
+	content, err := lib.RequestContent(URL)
 
 	if err != nil {
 		lib.LogParseErr(4, err.Error())
