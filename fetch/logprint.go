@@ -2,14 +2,14 @@ package fetch
 
 import "log"
 
-func LogStorageHeaderData(v []headerData) {
+func LogStorageHeaderData(v []HeaderData) {
 	for _, datum := range v {
 		log.Println(datum)
 	}
 }
 
 func LogStorageVoicesCallsData() {
-	for _, datum := range storageVoiceCallData {
+	for _, datum := range StorageVoiceCallData {
 		log.Println(datum)
 	}
 }
@@ -21,12 +21,12 @@ func LogStorageEmailData() {
 }
 
 func LogStorageBilling() {
-	log.Println("CreateCustomer :", storageBilling.CreateCustomer)
-	log.Println("Purchase       :", storageBilling.Purchase)
-	log.Println("Payout         :", storageBilling.Payout)
-	log.Println("Recurring      :", storageBilling.Recurring)
-	log.Println("FraudControl   :", storageBilling.FraudControl)
-	log.Println("CheckoutPage   :", storageBilling.CheckoutPage)
+	log.Println("CreateCustomer :", StorageBilling.CreateCustomer)
+	log.Println("Purchase       :", StorageBilling.Purchase)
+	log.Println("Payout         :", StorageBilling.Payout)
+	log.Println("Recurring      :", StorageBilling.Recurring)
+	log.Println("FraudControl   :", StorageBilling.FraudControl)
+	log.Println("CheckoutPage   :", StorageBilling.CheckoutPage)
 }
 
 func LogSupportData() {

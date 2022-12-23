@@ -25,45 +25,47 @@ var (
 	// если в будущем появится иной набор провайдеров для MMS
 )
 
-type headerData struct {
-	Country      string `json:"country"`
-	Bandwidth    string `json:"bandwidth"`
-	ResponseTime string `json:"response_time"`
-	Provider     string `json:"provider"`
-}
+type (
+	HeaderData struct {
+		Country      string `json:"country"`
+		Bandwidth    string `json:"bandwidth"`
+		ResponseTime string `json:"response_time"`
+		Provider     string `json:"provider"`
+	}
 
-type voiceCallData struct {
-	header              headerData
-	connectionStability float32
-	tTFB                int
-	voicePurity         int
-	medianOfCallsTime   int
-}
+	voiceCallData struct {
+		header              HeaderData
+		connectionStability float32
+		tTFB                int
+		voicePurity         int
+		medianOfCallsTime   int
+	}
 
-type emailData struct {
-	Country      string
-	Provider     string
-	DeliveryTime int
-}
+	emailData struct {
+		Country      string
+		Provider     string
+		DeliveryTime int
+	}
 
-type BillingData struct {
-	CreateCustomer bool
-	Purchase       bool
-	Payout         bool
-	Recurring      bool
-	FraudControl   bool
-	CheckoutPage   bool
-}
+	BillingData struct {
+		CreateCustomer bool
+		Purchase       bool
+		Payout         bool
+		Recurring      bool
+		FraudControl   bool
+		CheckoutPage   bool
+	}
 
-type supportData struct {
-	Topic         string `json:"topic"`
-	ActiveTickets int    `json:"active_tickets"`
-}
+	supportData struct {
+		Topic         string `json:"topic"`
+		ActiveTickets int    `json:"active_tickets"`
+	}
 
-type AccidentData struct {
-	Topic  string `json:"topic"`
-	Status string `json:"status"` // возможные статусы active и	closed
-}
+	AccidentData struct {
+		Topic  string `json:"topic"`
+		Status string `json:"status"` // возможные статусы active и	closed
+	}
+)
 
 type ResultT struct {
 	Status bool `json:"status"` // true, если все этапы сбора данных прошли успешно,
@@ -74,8 +76,8 @@ type ResultT struct {
 }
 
 type ResultSetT struct {
-	SMS       [][]headerData           `json:"sms"`
-	MMS       [][]headerData           `json:"mms"`
+	SMS       [][]HeaderData           `json:"sms"`
+	MMS       [][]HeaderData           `json:"mms"`
 	VoiceCall []voiceCallData          `json:"voice_call"`
 	Email     map[string][][]emailData `json:"email"`
 	Billing   BillingData              `json:"billing"`
@@ -84,13 +86,14 @@ type ResultSetT struct {
 }
 
 var (
-	StorageSMSData       = []headerData{}
-	StorageMMSData       = []headerData{}
-	storageVoiceCallData = []voiceCallData{}
+	StorageSMSData       = []HeaderData{}
+	StorageMMSData       = []HeaderData{}
+	StorageVoiceCallData = []voiceCallData{}
 	storageEmail         = []emailData{}
-	storageBilling       = BillingData{}
+	StorageBilling       = BillingData{}
 	storageSupportData   = []supportData{}
 	storageAccidentData  = []AccidentData{}
+	ResultSet            = ResultSetT{}
 )
 
 func ParseSMS(filename string) (lineCounter, parseErrCount int) {
@@ -119,7 +122,7 @@ func ParseSMS(filename string) (lineCounter, parseErrCount int) {
 			continue
 		}
 
-		s := headerData{
+		s := HeaderData{
 			Country:      splitString[0],
 			Bandwidth:    splitString[1],
 			ResponseTime: splitString[2],
@@ -169,7 +172,7 @@ func ParseVoicesCall(filename string) (lineCounter, parseErrCount int) {
 		}
 
 		s := voiceCallData{
-			header: headerData{
+			header: HeaderData{
 				Country:      splitString[0],
 				Bandwidth:    splitString[1],
 				ResponseTime: splitString[2],
@@ -187,7 +190,7 @@ func ParseVoicesCall(filename string) (lineCounter, parseErrCount int) {
 			continue
 		}
 
-		storageVoiceCallData = append(storageVoiceCallData, s)
+		StorageVoiceCallData = append(StorageVoiceCallData, s)
 
 		lineCounter++
 
@@ -283,7 +286,7 @@ func ParseBilling(filename string) (lineCounter, parseErrCount int) {
 		lib.LogParseErr(0,
 			fmt.Sprintf("Значение в dec- формате: %d, в bin- формате:  %b", i, i))
 
-		storageBilling.parse(i)
+		StorageBilling.parse(i)
 
 		lineCounter++
 	}
@@ -313,7 +316,7 @@ func ParseMMS(URL string) (lineCounter, parseErrCount int) {
 
 	for i := 0; i < k; i++ {
 
-		if !(headerData.check(StorageMMSData[i], MmsProviders, i)) {
+		if !(HeaderData.check(StorageMMSData[i], MmsProviders, i)) {
 			StorageMMSData = append(StorageMMSData[:i],
 				StorageMMSData[i+1:]...)
 			k--

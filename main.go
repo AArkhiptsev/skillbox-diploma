@@ -126,12 +126,12 @@ func main() {
 	logSortProviders()
 
 	smsHandler()
-	voiceCallHandler()
-	emailHandler()
+	//voiceCallHandler()
+	//emailHandler()
 	//billingHandler()
 
 	//supportHandler()
-	//mmsHandler()
+	mmsHandler()
 	//accidentHandler()
 
 	lib.LogParseErr(0, "Сбор всех данных завершен.")

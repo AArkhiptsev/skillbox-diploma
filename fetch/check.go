@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func (s headerData) check(providers []string, lineNumber int) (result bool) {
+func (s HeaderData) check(providers []string, lineNumber int) (result bool) {
 
 	result = false
 
