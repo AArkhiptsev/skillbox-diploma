@@ -3,6 +3,7 @@ package main
 import (
 	"diploma/fetch"
 	"diploma/lib"
+	"diploma/serve"
 	"fmt"
 	"sort"
 )
@@ -130,10 +131,13 @@ func main() {
 	//billingHandler()
 
 	//supportHandler()
-	mmsHandler()
+	//mmsHandler()
 	//accidentHandler()
 
-	lib.LogParseErr(0, "Сбор данных завершен.")
+	lib.LogParseErr(0, "Сбор всех данных завершен.")
+
+	lib.LogParseErr(1, "Формирование результата")
+	serve.GetResultData()
 
 	//go lib.Spinner(80 * time.Millisecond)
 	//serve.ListenAndServeHTTP()

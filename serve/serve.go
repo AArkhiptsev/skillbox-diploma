@@ -1,6 +1,7 @@
 package serve
 
 import (
+	"diploma/fetch"
 	"diploma/lib"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -8,6 +9,10 @@ import (
 )
 
 const serveraddr = "localhost:8282"
+
+func GetResultData() (result fetch.ResultSetT) {
+	return
+}
 
 func handleMMS(w http.ResponseWriter, r *http.Request) {
 	return
