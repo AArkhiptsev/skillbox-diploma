@@ -3,10 +3,8 @@ package main
 import (
 	"diploma/fetch"
 	"diploma/lib"
-	"diploma/serve"
 	"fmt"
 	"sort"
-	"time"
 )
 
 const (
@@ -52,9 +50,9 @@ func smsHandler() {
 func mmsHandler() {
 
 	lib.LogParseErr(1, "Запросим данные об MMS "+mmsDataServer)
-	fetch.ParseMMS(mmsDataServer)
+	line, errCount := fetch.ParseMMS(mmsDataServer)
+	lib.StdParseMessage(mmsDataServer, line, errCount)
 
-	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageHeaderData(fetch.StorageMMSData)
 
 	lib.LogParseErr(1, "Обработка MMS завершена")
@@ -62,12 +60,12 @@ func mmsHandler() {
 }
 
 func supportHandler() {
-	lib.LogParseErr(1, "Запросим данные об MMS "+supportServer)
-	fetch.ParseSupport(supportServer)
+	lib.LogParseErr(1, "Запросим данные о поддержке "+supportServer)
+	line, errCount := fetch.ParseSupport(supportServer)
+	lib.StdParseMessage(supportServer, line, errCount)
 
-	lib.LogParseErr(0, "Результат:")
 	fetch.LogSupportData()
-	lib.LogParseErr(1, "Обработка MMS завершена")
+	lib.LogParseErr(1, "Обработка данных о поддержке завершена")
 
 }
 
@@ -79,7 +77,6 @@ func voiceCallHandler() {
 
 	fetch.LogStorageHeaderData(fetch.StorageSMSData)
 
-	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageVoicesCallsData()
 
 	lib.LogParseErr(1,
@@ -92,7 +89,6 @@ func emailHandler() {
 	line, errCount := fetch.ParseEmail(emailFileName)
 	lib.StdParseMessage(emailFileName, line, errCount)
 
-	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageEmailData()
 
 	lib.LogParseErr(1,
@@ -104,7 +100,6 @@ func billingHandler() {
 	line, errCount := fetch.ParseBilling(billingFileName)
 	lib.StdParseMessage(billingFileName, line, errCount)
 
-	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageBilling()
 
 	lib.LogParseErr(1,
@@ -114,9 +109,9 @@ func billingHandler() {
 func accidentHandler() {
 
 	lib.LogParseErr(1, "Запросим данные об инцидентах "+accidentServer)
-	fetch.ParseAccident(accidentServer)
+	line, errCount := fetch.ParseSupport(accidentServer)
+	lib.StdParseMessage(supportServer, line, errCount)
 
-	lib.LogParseErr(0, "Результат:")
 	fetch.LogStorageAccidentData()
 
 	lib.LogParseErr(1, "Обработка инцидентов завершена")
@@ -130,17 +125,17 @@ func main() {
 	logSortProviders()
 
 	smsHandler()
-	//voiceCallHandler()
-	//emailHandler()
+	voiceCallHandler()
+	emailHandler()
 	//billingHandler()
 
 	//supportHandler()
-	//mmsHandler()
+	mmsHandler()
 	//accidentHandler()
 
 	lib.LogParseErr(0, "Сбор данных завершен.")
 
-	go lib.Spinner(80 * time.Millisecond)
-	serve.ListenAndServeHTTP()
+	//go lib.Spinner(80 * time.Millisecond)
+	//serve.ListenAndServeHTTP()
 
 }
