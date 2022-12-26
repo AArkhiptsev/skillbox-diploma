@@ -30,7 +30,7 @@ func LogStorageBilling() {
 }
 
 func LogSupportData() {
-	for _, datum := range storageSupportData {
+	for _, datum := range StorageSupportData {
 		log.Println(datum)
 	}
 }

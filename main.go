@@ -130,9 +130,9 @@ func main() {
 	//emailHandler()
 	//billingHandler()
 
-	//supportHandler()
+	supportHandler()
 	//mmsHandler()
-	accidentHandler()
+	//accidentHandler()
 
 	lib.LogParseErr(0, "Сбор всех данных завершен.")
 

@@ -56,7 +56,7 @@ type (
 		CheckoutPage   bool
 	}
 
-	supportData struct {
+	SupportData struct {
 		Topic         string `json:"topic"`
 		ActiveTickets int    `json:"active_tickets"`
 	}
@@ -91,7 +91,7 @@ var (
 	StorageVoiceCallData = []voiceCallData{}
 	StorageEmail         = []EmailData{}
 	StorageBilling       = BillingData{}
-	storageSupportData   = []supportData{}
+	StorageSupportData   = []SupportData{}
 	StorageAccidentData  = []AccidentData{}
 	ResultSet            = ResultSetT{}
 	ResultEmail          = map[string][][]EmailData{}
@@ -371,13 +371,13 @@ func ParseSupport(URL string) (lineCounter, parseErrCount int) {
 		return
 	}
 
-	if err := json.Unmarshal(content, &storageSupportData); err != nil {
+	if err := json.Unmarshal(content, &StorageSupportData); err != nil {
 		lib.LogParseErr(4, err.Error())
 		parseErrCount++
 		return
 	}
 
-	lineCounter = len(storageSupportData)
+	lineCounter = len(StorageSupportData)
 
 	return
 }

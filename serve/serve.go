@@ -12,6 +12,9 @@ import (
 const (
 	serveraddr             = "localhost:8282"
 	averageSupportBandwith = 18
+	lowLoad                = 9
+	middleLoad             = 16
+	specCount              = 7
 )
 
 func sortByCountry(a []fetch.HeaderData) (rs []fetch.HeaderData) {
@@ -159,6 +162,51 @@ func prepareAccident() {
 
 }
 
+func sumActiveTicket() (ticketCount int) {
+
+	a := fetch.StorageSupportData
+
+	for _, data := range a {
+		ticketCount += data.ActiveTickets
+	}
+
+	return
+}
+
+func prepareSupport() {
+
+	activeTicket := sumActiveTicket()
+	supportLoad := 0
+
+	switch {
+
+	case activeTicket < lowLoad:
+		{
+			supportLoad = 1
+		}
+	case activeTicket < middleLoad:
+		{
+			supportLoad = 2
+		}
+	default:
+		{
+			supportLoad = 3
+		}
+
+	}
+
+	//fmt.Println(activeTicket)
+	//fmt.Println(supportLoad)
+
+	fetch.ResultSet.Support = append(fetch.ResultSet.Support, supportLoad)
+
+	timeToResolveTicket := 60 / averageSupportBandwith //* specCount
+
+	fetch.ResultSet.Support = append(fetch.ResultSet.Support,
+		supportLoad*timeToResolveTicket)
+
+}
+
 func GetResultData() { //11.1
 
 	//	prepareSMS()                                     	    //11.2
@@ -166,8 +214,8 @@ func GetResultData() { //11.1
 	fetch.ResultSet.VoiceCall = fetch.StorageVoiceCallData //11.4
 	//prepareEmail()                                       	    //11.5
 	fetch.ResultSet.Billing = fetch.StorageBilling //11.6
-	//11.7
-	prepareAccident() //11.8
+	prepareSupport()                               //11.7
+	//prepareAccident()                              			//11.8
 
 	fmt.Println(fetch.ResultSet)
 
