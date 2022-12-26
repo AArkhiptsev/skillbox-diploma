@@ -140,6 +140,6 @@ func main() {
 	serve.GetResultData()
 
 	//go lib.Spinner(80 * time.Millisecond)
-	//serve.ListenAndServeHTTP()
+	serve.ListenAndServeHTTP()
 
 }

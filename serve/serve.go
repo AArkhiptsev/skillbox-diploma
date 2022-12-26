@@ -3,11 +3,13 @@ package serve
 import (
 	"diploma/fetch"
 	"diploma/lib"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 	"sort"
 	"strconv"
+	"unsafe"
 )
 
 const (
@@ -263,6 +265,20 @@ func GetResultData() { //11.1
 }
 
 func handleServer(w http.ResponseWriter, r *http.Request) {
+
+	u, err := json.Marshal(fetch.Result)
+	if err != nil {
+		lib.LogParseErr(4, err.Error())
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(u)
+
+	lib.LogParseErr(0, "Отправляю ответ на "+serveraddr)
+	fmt.Println("Текст ошибки:", fetch.Result.Error)
+	fmt.Println("Есть ошибки:", fetch.Result.Status)
+	fmt.Println("Записей ResultSet:", unsafe.Sizeof(fetch.Result.Data))
+
 	return
 }
 
