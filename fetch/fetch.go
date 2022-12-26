@@ -35,25 +35,25 @@ type (
 
 	voiceCallData struct {
 		header              HeaderData
-		connectionStability float32
-		tTFB                int
-		voicePurity         int
-		medianOfCallsTime   int
+		connectionStability float32 `json:"connection_stability"`
+		tTFB                int     `json:"TTFB"`
+		voicePurity         int     `json:"voice_purity"`
+		medianOfCallsTime   int     `json:"median_of_calls_time"`
 	}
 
 	EmailData struct {
-		Country      string
-		Provider     string
-		DeliveryTime int
+		Country      string `json:"country"`
+		Provider     string `json:"provider"`
+		DeliveryTime int    `json:"delivery_time"`
 	}
 
 	BillingData struct {
-		CreateCustomer bool
-		Purchase       bool
-		Payout         bool
-		Recurring      bool
-		FraudControl   bool
-		CheckoutPage   bool
+		CreateCustomer bool `json:"create_customer"`
+		Purchase       bool `json:"purchase"`
+		Payout         bool `json:"payout"`
+		Recurring      bool `json:"recurring"`
+		FraudControl   bool `json:"fraud_control"`
+		CheckoutPage   bool `json:"checkout_page"`
 	}
 
 	SupportData struct {
@@ -68,11 +68,9 @@ type (
 )
 
 type ResultT struct {
-	Status bool `json:"status"` // true, если все этапы сбора данных прошли успешно,
-	// false во всех остальных случаях
-	Data ResultSetT `json:"data"` // заполнен, если все этапы сбора данных прошли успешно,
-	// nil во всех остальных случаях
-	Error string `json:"error"` // пустая строка если все этапы сбора данных прошли успешно, в случае ошибки заполнено текстом ошибки
+	Status bool       `json:"status"` // true, если все этапы сбора данных прошли успешно,
+	Data   ResultSetT `json:"data"`   // заполнен, если все этапы сбора данных прошли успешно,
+	Error  string     `json:"error"`  // пустая строка если все этапы сбора данных прошли успешно, в случае ошибки заполнено текстом ошибки
 }
 
 type ResultSetT struct {
@@ -94,6 +92,7 @@ var (
 	StorageSupportData   = []SupportData{}
 	StorageAccidentData  = []AccidentData{}
 	ResultSet            = ResultSetT{}
+	Result               = ResultT{}
 	ResultEmail          = map[string][][]EmailData{}
 )
 

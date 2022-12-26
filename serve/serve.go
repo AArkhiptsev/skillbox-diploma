@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"sort"
+	"strconv"
 )
 
 const (
@@ -14,7 +15,7 @@ const (
 	averageSupportBandwith = 18
 	lowLoad                = 9
 	middleLoad             = 16
-	specCount              = 7
+	//specCount              = 7
 )
 
 func sortByCountry(a []fetch.HeaderData) (rs []fetch.HeaderData) {
@@ -61,9 +62,15 @@ func sortByCountryAndSpeed(a []fetch.EmailData) (rs []fetch.EmailData) {
 	return
 }
 
-func prepareSMS() {
+func prepareSMS() (result int) {
 
 	a := fetch.StorageSMSData
+
+	if len(a) == 0 {
+		lib.LogParseErr(2, "SMS нет")
+		result++
+		return
+	}
 
 	for i, _ := range a {
 		a[i].Country = lib.GetCountryNameByAlpha(a[i].Country)
@@ -82,11 +89,18 @@ func prepareSMS() {
 	for _, data := range fetch.ResultSet.SMS[1] {
 		fmt.Println(data)
 	}
+	return
 }
 
-func prepareMMS() {
+func prepareMMS() (result int) {
 
 	a := fetch.StorageMMSData
+
+	if len(a) == 0 {
+		lib.LogParseErr(2, "MMS нет")
+		result++
+		return
+	}
 
 	for i, _ := range a {
 		a[i].Country = lib.GetCountryNameByAlpha(a[i].Country)
@@ -105,6 +119,8 @@ func prepareMMS() {
 	for _, data := range fetch.ResultSet.MMS[1] {
 		fmt.Println(data)
 	}
+
+	return
 }
 
 func printFastAndSlow(x []fetch.EmailData) (result map[string][][]fetch.EmailData) {
@@ -139,43 +155,54 @@ func printFastAndSlow(x []fetch.EmailData) (result map[string][][]fetch.EmailDat
 
 }
 
-func prepareEmail() {
+func prepareEmail() (result int) {
 
 	a := fetch.StorageEmail
-	x := sortByCountryAndSpeed(a)
+	if len(a) == 0 {
+		lib.LogParseErr(2, "MMS нет")
+		result++
+		return
+	}
 
+	x := sortByCountryAndSpeed(a)
 	fetch.ResultSet.Email = printFastAndSlow(x)
 
+	return
 }
 
-func prepareAccident() {
+func prepareAccident() (result int) {
 
 	if len(fetch.StorageAccidentData) == 0 {
 		lib.LogParseErr(2, "Инцидентов нет")
+		result++
 		return
 	}
 	x := sortByAccident(fetch.StorageAccidentData)
 
 	fetch.ResultSet.Incidents = x
 
-	fmt.Println(fetch.ResultSet)
-
-}
-
-func sumActiveTicket() (ticketCount int) {
-
-	a := fetch.StorageSupportData
-
-	for _, data := range a {
-		ticketCount += data.ActiveTickets
-	}
-
+	//fmt.Println(fetch.ResultSet)
 	return
 }
 
-func prepareSupport() {
+func sumActiveTicket(a []fetch.SupportData) (ticketCount int) {
+	for _, data := range a {
+		ticketCount += data.ActiveTickets
+	}
+	return
+}
 
-	activeTicket := sumActiveTicket()
+func prepareSupport() (result int) {
+
+	a := fetch.StorageSupportData
+
+	if len(fetch.StorageAccidentData) == 0 {
+		lib.LogParseErr(2, "Тикетов нет")
+		result++
+		return
+	}
+
+	activeTicket := sumActiveTicket(a)
 	supportLoad := 0
 
 	switch {
@@ -205,19 +232,32 @@ func prepareSupport() {
 	fetch.ResultSet.Support = append(fetch.ResultSet.Support,
 		supportLoad*timeToResolveTicket)
 
+	return
 }
 
 func GetResultData() { //11.1
 
-	//	prepareSMS()                                     	    //11.2
-	//	prepareMMS()                                         	//11.3
-	fetch.ResultSet.VoiceCall = fetch.StorageVoiceCallData //11.4
-	//prepareEmail()                                       	    //11.5
-	fetch.ResultSet.Billing = fetch.StorageBilling //11.6
-	prepareSupport()                               //11.7
-	//prepareAccident()                              			//11.8
+	errCount := 0
 
-	fmt.Println(fetch.ResultSet)
+	errCount += prepareSMS()                               //11.2
+	errCount += prepareMMS()                               //11.3
+	fetch.ResultSet.VoiceCall = fetch.StorageVoiceCallData //11.4
+	errCount += prepareEmail()                             //11.5
+	fetch.ResultSet.Billing = fetch.StorageBilling         //11.6
+	errCount += prepareSupport()                           //11.7
+	errCount += prepareAccident()                          //11.8
+
+	if errCount > 0 {
+		fetch.Result.Error = "Ошибок сбора ResultSet:" + strconv.Itoa(errCount)
+		fetch.Result.Status = true
+	} else {
+		fetch.Result.Error = ""
+		fetch.Result.Status = false
+	}
+
+	fetch.Result.Data = fetch.ResultSet
+
+	lib.LogParseErr(2, fetch.Result.Error)
 
 	return
 }
