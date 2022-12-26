@@ -15,7 +15,7 @@ func LogStorageVoicesCallsData() {
 }
 
 func LogStorageEmailData() {
-	for _, datum := range storageEmail {
+	for _, datum := range StorageEmail {
 		log.Println(datum)
 	}
 }
@@ -36,7 +36,7 @@ func LogSupportData() {
 }
 
 func LogStorageAccidentData() {
-	for _, datum := range storageAccidentData {
+	for _, datum := range StorageAccidentData {
 		log.Println(datum)
 	}
 }

@@ -9,7 +9,10 @@ import (
 	"sort"
 )
 
-const serveraddr = "localhost:8282"
+const (
+	serveraddr             = "localhost:8282"
+	averageSupportBandwith = 18
+)
 
 func sortByCountry(a []fetch.HeaderData) (rs []fetch.HeaderData) {
 
@@ -24,6 +27,32 @@ func sortByProvider(a []fetch.HeaderData) (rs []fetch.HeaderData) {
 
 	sort.Slice(a, func(i, j int) bool {
 		return a[i].Provider < a[j].Provider
+	})
+	rs = a
+	return
+}
+
+func sortByAccident(a []fetch.AccidentData) (rs []fetch.AccidentData) {
+
+	sort.Slice(a, func(i, j int) bool {
+		return a[i].Status < a[j].Status
+	})
+	rs = a
+	return
+}
+
+func sortByCountryAndSpeed(a []fetch.EmailData) (rs []fetch.EmailData) {
+
+	sort.Slice(a, func(i, j int) bool {
+		iv, jv := a[i], a[j]
+		switch {
+		case iv.Country != jv.Country:
+			return iv.Country < jv.Country
+		case iv.DeliveryTime != jv.DeliveryTime:
+			return iv.DeliveryTime < jv.DeliveryTime
+		default:
+			return iv.Country < jv.Country
+		}
 	})
 	rs = a
 	return
@@ -75,12 +104,72 @@ func prepareMMS() {
 	}
 }
 
-func GetResultData() {
+func printFastAndSlow(x []fetch.EmailData) (result map[string][][]fetch.EmailData) {
 
-	prepareSMS()
-	prepareMMS()
-	fetch.ResultSet.VoiceCall = fetch.StorageVoiceCallData
-	fetch.ResultSet.Billing = fetch.StorageBilling
+	v := map[string][][]fetch.EmailData{}
+	alpha := x[0].Country
+	start := 0
+
+	for i, data := range x {
+
+		if alpha != data.Country {
+			alpha = data.Country
+
+			fastProviders := x[start : start+3]
+			slowProviders := x[i-3 : i]
+
+			fmt.Println(fastProviders)
+
+			v[data.Country] = append(v[data.Country], fastProviders)
+			v[data.Country] = append(v[data.Country], slowProviders)
+
+			//fmt.Println(v)
+
+			start = i
+
+		}
+
+	}
+
+	result = v
+	return
+
+}
+
+func prepareEmail() {
+
+	a := fetch.StorageEmail
+	x := sortByCountryAndSpeed(a)
+
+	fetch.ResultSet.Email = printFastAndSlow(x)
+
+}
+
+func prepareAccident() {
+
+	if len(fetch.StorageAccidentData) == 0 {
+		lib.LogParseErr(2, "Инцидентов нет")
+		return
+	}
+	x := sortByAccident(fetch.StorageAccidentData)
+
+	fetch.ResultSet.Incidents = x
+
+	fmt.Println(fetch.ResultSet)
+
+}
+
+func GetResultData() { //11.1
+
+	//	prepareSMS()                                     	    //11.2
+	//	prepareMMS()                                         	//11.3
+	fetch.ResultSet.VoiceCall = fetch.StorageVoiceCallData //11.4
+	//prepareEmail()                                       	    //11.5
+	fetch.ResultSet.Billing = fetch.StorageBilling //11.6
+	//11.7
+	prepareAccident() //11.8
+
+	fmt.Println(fetch.ResultSet)
 
 	return
 }

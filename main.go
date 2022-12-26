@@ -110,7 +110,7 @@ func billingHandler() {
 func accidentHandler() {
 
 	lib.LogParseErr(1, "Запросим данные об инцидентах "+accidentServer)
-	line, errCount := fetch.ParseSupport(accidentServer)
+	line, errCount := fetch.ParseAccident(accidentServer)
 	lib.StdParseMessage(supportServer, line, errCount)
 
 	fetch.LogStorageAccidentData()
@@ -125,14 +125,14 @@ func main() {
 
 	logSortProviders()
 
-	smsHandler()
+	//smsHandler()
 	//voiceCallHandler()
 	//emailHandler()
 	//billingHandler()
 
 	//supportHandler()
-	mmsHandler()
-	//accidentHandler()
+	//mmsHandler()
+	accidentHandler()
 
 	lib.LogParseErr(0, "Сбор всех данных завершен.")
 

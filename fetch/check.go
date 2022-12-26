@@ -84,7 +84,7 @@ func (s *voiceCallData) check(val []string, lineNumber int) (result bool) {
 	return
 }
 
-func (s *emailData) check(providers []string, deliveryTime string, lineNumber int) (result bool) {
+func (s *EmailData) check(providers []string, deliveryTime string, lineNumber int) (result bool) {
 	result = false
 
 	if lib.GetCountryNameByAlpha(s.Country) == "" {

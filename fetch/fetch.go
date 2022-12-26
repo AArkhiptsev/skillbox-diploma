@@ -41,7 +41,7 @@ type (
 		medianOfCallsTime   int
 	}
 
-	emailData struct {
+	EmailData struct {
 		Country      string
 		Provider     string
 		DeliveryTime int
@@ -79,7 +79,7 @@ type ResultSetT struct {
 	SMS       [][]HeaderData           `json:"sms"`
 	MMS       [][]HeaderData           `json:"mms"`
 	VoiceCall []voiceCallData          `json:"voice_call"`
-	Email     map[string][][]emailData `json:"email"`
+	Email     map[string][][]EmailData `json:"email"`
 	Billing   BillingData              `json:"billing"`
 	Support   []int                    `json:"support"`
 	Incidents []AccidentData           `json:"incident"`
@@ -89,11 +89,12 @@ var (
 	StorageSMSData       = []HeaderData{}
 	StorageMMSData       = []HeaderData{}
 	StorageVoiceCallData = []voiceCallData{}
-	storageEmail         = []emailData{}
+	StorageEmail         = []EmailData{}
 	StorageBilling       = BillingData{}
 	storageSupportData   = []supportData{}
-	storageAccidentData  = []AccidentData{}
+	StorageAccidentData  = []AccidentData{}
 	ResultSet            = ResultSetT{}
+	ResultEmail          = map[string][][]EmailData{}
 )
 
 func ParseSMS(filename string) (lineCounter, parseErrCount int) {
@@ -234,7 +235,7 @@ func ParseEmail(filename string) (lineCounter, parseErrCount int) {
 			continue
 		}
 
-		s := emailData{
+		s := EmailData{
 			Country:  splitString[0],
 			Provider: splitString[1],
 		}
@@ -244,7 +245,7 @@ func ParseEmail(filename string) (lineCounter, parseErrCount int) {
 			continue
 		}
 
-		storageEmail = append(storageEmail, s)
+		StorageEmail = append(StorageEmail, s)
 		lineCounter++
 
 	}
@@ -337,20 +338,20 @@ func ParseAccident(URL string) (lineCounter, parseErrCount int) {
 		return
 	}
 
-	if err := json.Unmarshal(content, &storageAccidentData); err != nil {
+	if err := json.Unmarshal(content, &StorageAccidentData); err != nil {
 		lib.LogParseErr(4, err.Error())
 		parseErrCount++
 		return
 	}
 
-	k := len(storageAccidentData)
+	k := len(StorageAccidentData)
 	lineCounter = k
 
 	for i := 0; i < k; i++ {
 
-		if !(AccidentData.check(storageAccidentData[i], AccidentStatus, i)) {
-			storageAccidentData = append(storageAccidentData[:i],
-				storageAccidentData[i+1:]...)
+		if !(AccidentData.check(StorageAccidentData[i], AccidentStatus, i)) {
+			StorageAccidentData = append(StorageAccidentData[:i],
+				StorageAccidentData[i+1:]...)
 			k--
 			parseErrCount++
 		}
