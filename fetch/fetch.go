@@ -12,7 +12,14 @@ import (
 )
 
 const (
-	csvSeparator = ";"
+	csvSeparator          = ";"
+	BillingCreateCustomer = 1  // 000001
+	BillingPurchase       = 2  // 000010
+	BillingPayout         = 4  // 000100
+	BillingRecurring      = 8  // 001000
+	BillingFraudControl   = 16 // 010000
+	BillingCheckoutPage   = 32 // 100000
+
 )
 
 var (

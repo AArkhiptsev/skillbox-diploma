@@ -3,7 +3,6 @@ package main
 import (
 	"diploma/fetch"
 	"diploma/lib"
-	"diploma/serve"
 	"fmt"
 	"sort"
 )
@@ -125,21 +124,21 @@ func main() {
 
 	logSortProviders()
 
-	smsHandler()
-	voiceCallHandler()
-	emailHandler()
+	//smsHandler()
+	//voiceCallHandler()
+	//emailHandler()
 	billingHandler()
 
-	supportHandler()
-	mmsHandler()
-	accidentHandler()
+	//supportHandler()
+	//mmsHandler()
+	//accidentHandler()
 
 	lib.LogParseErr(0, "Сбор всех данных завершен.")
 
 	lib.LogParseErr(1, "Формирование результата")
-	serve.GetResultData()
+	//serve.GetResultData()
 
 	//go lib.Spinner(80 * time.Millisecond)
-	serve.ListenAndServeHTTP()
+	//serve.ListenAndServeHTTP()
 
 }
