@@ -259,7 +259,7 @@ func GetResultData() { //11.1
 
 	fetch.Result.Data = fetch.ResultSet
 
-	lib.LogParseErr(2, fetch.Result.Error)
+	//	lib.LogParseErr(2, fetch.Result.Error)
 
 	return
 }
