@@ -131,24 +131,11 @@ func (s AccidentData) check(statuses []string, lineNumber int) (result bool) {
 
 func (b *BillingData) parse(a int64) {
 
-	if (a & BillingCreateCustomer) != 0 {
-		b.CreateCustomer = true
-	}
-	if (a & BillingPurchase) != 0 {
-		b.Purchase = true
-	}
-	if (a & BillingPayout) != 0 {
-		b.Payout = true
-	}
-	if (a & BillingRecurring) != 0 {
-		b.Recurring = true
-	}
-	if (a & BillingFraudControl) != 0 {
-		b.FraudControl = true
-	}
-	if (a & BillingCheckoutPage) != 0 {
-		b.CheckoutPage = true
-	}
+	b.CreateCustomer = lib.CheckBit(a, BillingCreateCustomer)
+	b.Purchase = lib.CheckBit(a, BillingPurchase)
+	b.Payout = lib.CheckBit(a, BillingPayout)
+	b.Recurring = lib.CheckBit(a, BillingRecurring)
+	b.FraudControl = lib.CheckBit(a, BillingFraudControl)
+	b.CheckoutPage = lib.CheckBit(a, BillingCheckoutPage)
 
-	return
 }

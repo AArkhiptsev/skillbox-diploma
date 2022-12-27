@@ -325,12 +325,11 @@ func Spinner(delay time.Duration) {
 	}
 }
 
-func CheckBit(a byte) (result bool) {
-	result = false
-	if a == 49 {
-		result = true
+func CheckBit(a, mask int64) bool {
+	if (a & mask) != 0 {
+		return true
 	}
-	return
+	return false
 }
 
 func RequestContent(URL string) (content []byte, err error) {
