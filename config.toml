@@ -1,0 +1,15 @@
+# Конфигурационный файл
+
+[files]
+smsFileName = "../emul/sms.data"
+voiceCallFileName = "../emul/voice.data"
+emailFileName = "../emul/email.data"
+BillingFileName = "../emul/billing.data"
+
+[fetchServers]
+mmsDataServer = "http://127.0.0.1:8383/mms"
+supportServer = "http://127.0.0.1:8383/support"
+accidentServer = "http://127.0.0.1:8383/accendent"
+
+[server]
+serveraddr  = "localhost:8282"

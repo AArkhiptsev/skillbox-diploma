@@ -1,22 +1,13 @@
 package main
 
 import (
+	"diploma/conf"
 	"diploma/fetch"
 	"diploma/lib"
 	"diploma/serve"
 	"fmt"
 	"sort"
 	"time"
-)
-
-const (
-	smsFileName       = "../emul/sms.data"
-	voiceCallFileName = "../emul/voice.data"
-	emailFileName     = "../emul/email.data"
-	billingFileName   = "../emul/billing.data"
-	mmsDataServer     = "http://127.0.0.1:8383/mms"
-	supportServer     = "http://127.0.0.1:8383/support"
-	accidentServer    = "http://127.0.0.1:8383/accendent"
 )
 
 func init() {
@@ -39,21 +30,21 @@ func logSortProviders() {
 func smsHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла SMS")
-	line, errCount := fetch.ParseSMS(smsFileName)
-	lib.StdParseMessage(smsFileName, line, errCount)
+	line, errCount := fetch.ParseSMS(conf.Config.Files.SmsFileName)
+	lib.StdParseMessage(conf.Config.Files.SmsFileName, line, errCount)
 
 	fetch.LogStorageHeaderData(fetch.StorageSMSData)
 
 	lib.LogParseErr(1,
-		fmt.Sprintf("Обработка %v завершена", smsFileName))
+		fmt.Sprintf("Обработка %v завершена", conf.Config.Files.SmsFileName))
 
 }
 
 func mmsHandler() {
 
-	lib.LogParseErr(1, "Запросим данные об MMS "+mmsDataServer)
-	line, errCount := fetch.ParseMMS(mmsDataServer)
-	lib.StdParseMessage(mmsDataServer, line, errCount)
+	lib.LogParseErr(1, "Запросим данные об MMS "+conf.Config.FetchServers.MmsDataServer)
+	line, errCount := fetch.ParseMMS(conf.Config.FetchServers.MmsDataServer)
+	lib.StdParseMessage(conf.Config.FetchServers.MmsDataServer, line, errCount)
 
 	fetch.LogStorageHeaderData(fetch.StorageMMSData)
 
@@ -62,9 +53,9 @@ func mmsHandler() {
 }
 
 func supportHandler() {
-	lib.LogParseErr(1, "Запросим данные о поддержке "+supportServer)
-	line, errCount := fetch.ParseSupport(supportServer)
-	lib.StdParseMessage(supportServer, line, errCount)
+	lib.LogParseErr(1, "Запросим данные о поддержке "+conf.Config.FetchServers.SupportServer)
+	line, errCount := fetch.ParseSupport(conf.Config.FetchServers.SupportServer)
+	lib.StdParseMessage(conf.Config.FetchServers.SupportServer, line, errCount)
 
 	fetch.LogSupportData()
 	lib.LogParseErr(1, "Обработка данных о поддержке завершена")
@@ -74,45 +65,45 @@ func supportHandler() {
 func voiceCallHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла Voice Calls")
-	line, errCount := fetch.ParseVoicesCall(voiceCallFileName)
-	lib.StdParseMessage(voiceCallFileName, line, errCount)
+	line, errCount := fetch.ParseVoicesCall(conf.Config.Files.VoiceCallFileName)
+	lib.StdParseMessage(conf.Config.Files.VoiceCallFileName, line, errCount)
 
 	fetch.LogStorageHeaderData(fetch.StorageSMSData)
 
 	fetch.LogStorageVoicesCallsData()
 
 	lib.LogParseErr(1,
-		fmt.Sprintf("Обработка %v завершена", voiceCallFileName))
+		fmt.Sprintf("Обработка %v завершена", conf.Config.Files.VoiceCallFileName))
 }
 
 func emailHandler() {
 
 	lib.LogParseErr(1, "Начат разбор файла Email")
-	line, errCount := fetch.ParseEmail(emailFileName)
-	lib.StdParseMessage(emailFileName, line, errCount)
+	line, errCount := fetch.ParseEmail(conf.Config.Files.EmailFileName)
+	lib.StdParseMessage(conf.Config.Files.EmailFileName, line, errCount)
 
 	fetch.LogStorageEmailData()
 
 	lib.LogParseErr(1,
-		fmt.Sprintf("Обработка %v завершена", emailFileName))
+		fmt.Sprintf("Обработка %v завершена", conf.Config.Files.EmailFileName))
 }
 
 func billingHandler() {
 	lib.LogParseErr(1, "Начат разбор файла Billing")
-	line, errCount := fetch.ParseBilling(billingFileName)
-	lib.StdParseMessage(billingFileName, line, errCount)
+	line, errCount := fetch.ParseBilling(conf.Config.Files.BillingFileName)
+	lib.StdParseMessage(conf.Config.Files.BillingFileName, line, errCount)
 
 	fetch.LogStorageBilling()
 
 	lib.LogParseErr(1,
-		fmt.Sprintf("Обработка %v завершена", billingFileName))
+		fmt.Sprintf("Обработка %v завершена", conf.Config.Files.BillingFileName))
 }
 
 func accidentHandler() {
 
-	lib.LogParseErr(1, "Запросим данные об инцидентах "+accidentServer)
-	line, errCount := fetch.ParseAccident(accidentServer)
-	lib.StdParseMessage(supportServer, line, errCount)
+	lib.LogParseErr(1, "Запросим данные об инцидентах "+conf.Config.FetchServers.AccidentServer)
+	line, errCount := fetch.ParseAccident(conf.Config.FetchServers.AccidentServer)
+	lib.StdParseMessage(conf.Config.FetchServers.AccidentServer, line, errCount)
 
 	fetch.LogStorageAccidentData()
 
@@ -123,6 +114,10 @@ func accidentHandler() {
 func main() {
 
 	lib.LogParseErr(0, "Старт...")
+
+	conf.ReadConfig(conf.ConfigFileName)
+
+	fmt.Println(conf.Config.FetchServers.AccidentServer)
 
 	logSortProviders()
 

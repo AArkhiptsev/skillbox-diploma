@@ -1,6 +1,7 @@
 package serve
 
 import (
+	"diploma/conf"
 	"diploma/fetch"
 	"diploma/lib"
 	"encoding/json"
@@ -13,7 +14,6 @@ import (
 )
 
 const (
-	serveraddr             = "localhost:8282"
 	averageSupportBandwith = 18
 	lowLoad                = 9
 	middleLoad             = 16
@@ -273,7 +273,7 @@ func handleServer(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(u)
 
-	lib.LogParseErr(0, "Отправляю ответ на "+serveraddr)
+	lib.LogParseErr(0, "Отправляю ответ на "+conf.Config.Server.Serveraddr)
 	fmt.Println("Текст ошибки:", fetch.Result.Error)
 	fmt.Println("Есть ошибки:", fetch.Result.Status)
 	fmt.Println("Записей ResultSet:", unsafe.Sizeof(fetch.Result.Data))
@@ -288,7 +288,7 @@ func ListenAndServeHTTP() {
 	router.HandleFunc("/", handleServer)
 
 	lib.LogParseErr(1,
-		fmt.Sprintf("Запускаю сервер %s", serveraddr))
+		fmt.Sprintf("Запускаю сервер %s", conf.Config.Server.Serveraddr))
 
-	http.ListenAndServe(serveraddr, router)
+	http.ListenAndServe(conf.Config.Server.Serveraddr, router)
 }
