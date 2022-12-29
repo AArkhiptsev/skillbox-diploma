@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const ConfigFileName = "config.toml"
+const ConfigFileName = "c_onfig.toml"
 
 type ConfigT struct {
 	Files struct {
